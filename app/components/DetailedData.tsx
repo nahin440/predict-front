@@ -11,7 +11,7 @@ export default function DetailedData({ prediction }: DetailedDataProps) {
 
   return (
     <div className="dd-container">
-      <h2 className="dd-title">📋 Complete Prediction Data (MongoDB)</h2>
+      <h2 className="dd-title">📋 Complete Prediction Data</h2>
       
       <div className="dd-section">
         <h3>Basic Info</h3>
