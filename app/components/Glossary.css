@@ -1,0 +1,57 @@
+.glossary-container {
+  background: #0f172a;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  margin: 2rem 0;
+  border: 1px solid #334155;
+}
+
+.glossary-title {
+  font-size: 1.5rem;
+  margin-bottom: 1.5rem;
+  color: #fbbf24;
+  border-bottom: 2px solid #334155;
+  padding-bottom: 0.5rem;
+}
+
+.glossary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1rem;
+}
+
+.glossary-card {
+  background: #1e293b;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.glossary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.glossary-term {
+  font-weight: bold;
+  font-size: 1rem;
+  color: #facc15;
+  margin-bottom: 0.5rem;
+  border-left: 3px solid #facc15;
+  padding-left: 0.5rem;
+}
+
+.glossary-definition {
+  font-size: 0.85rem;
+  color: #cbd5e1;
+  line-height: 1.4;
+}
+
+.glossary-footer {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.75rem;
+  color: #64748b;
+  border-top: 1px solid #334155;
+  padding-top: 1rem;
+}
