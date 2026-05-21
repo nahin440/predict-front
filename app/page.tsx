@@ -14,9 +14,11 @@ export default function Home() {
 
   const fetchData = async () => {
     try {
+      const timestamp = Date.now(); // Prevent caching
+      
       const [latestRes, historyRes] = await Promise.all([
-        fetch('/api/predictions/latest'),
-        fetch('/api/predictions?limit=50'),
+        fetch(`/api/predictions/latest?t=${timestamp}`),
+        fetch(`/api/predictions?limit=50&t=${timestamp}`),
       ]);
       
       const latestData = await latestRes.json();
@@ -39,6 +41,7 @@ export default function Home() {
     const interval = setInterval(fetchData, 30000);
     return () => clearInterval(interval);
   }, []);
+
 
   const getDirectionColor = (direction: string) => {
     return direction === 'UP' ? 'direction-up' : 'direction-down';

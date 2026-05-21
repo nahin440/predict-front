@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
-import { getPredictionsCollection } from '@/lib/mongodb';
+import { getPredictionsCollection } from '../../../../lib/mongodb';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function GET() {
   try {
@@ -20,6 +22,13 @@ export async function GET() {
       prediction: {
         ...latest[0],
         _id: latest[0]._id.toString(),
+      },
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'CDN-Cache-Control': 'no-cache',
       },
     });
   } catch (error) {
