@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react';
 
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+// export const dynamic = 'force-dynamic';
+// export const revalidate = 0;
 
 export default function Home() {
   const [predictions, setPredictions] = useState<any[]>([]);
