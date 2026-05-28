@@ -44,9 +44,19 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
-  const getRegimeIcon = (regime: string) => {
-    const icons: any = { 'TRENDING_BULL': '🐂', 'TRENDING_BEAR': '🐻', 'RANGING': '📊', 'EXPANSION': '⚡', 'NEWS_DRIVEN': '📰' };
-    return icons[regime] || '❓';
+  // Helper: combine direction + strength
+  const getCombinedSignal = (pred: any) => {
+    const dir = pred.direction;
+    if (dir !== 'UP' && dir !== 'DOWN') return 'NO SIGNAL';
+    const strength = pred.regime?.strength || 'Weak';
+    const directionText = dir === 'UP' ? 'LONG' : 'SHORT';
+    return `${strength.toUpperCase()} ${directionText}`;
+  };
+
+  const getSignalColor = (combined: string) => {
+    if (combined.includes('LONG')) return '#22c55e';
+    if (combined.includes('SHORT')) return '#ef4444';
+    return '#9ca3af';
   };
 
   if (loading) {
@@ -56,6 +66,9 @@ export default function Home() {
       </div>
     );
   }
+
+  // Determine if trade is valid (show trade plan and checklist)
+  const isValidTrade = latest && latest.direction !== 'N/A' && latest.risk?.sl > 0;
 
   return (
     <div className="container">
@@ -76,28 +89,30 @@ export default function Home() {
 
       {latest && (
         <>
-          {/* 1. Top card: Direction, Price, Grade, Skip status */}
-          <div className={latest.should_skip ? 'card card-skipped' : 'card card-active'}>
+          {/* Top card: Combined Signal, Price, Grade */}
+          <div className="card card-active">
             <div className="card-header">
               <div>
                 <div className="time">{latest.server_time}</div>
                 <div className="direction-price">
-                  <span className={`direction ${latest.direction === 'UP' ? 'direction-up' : 'direction-down'}`}>
-                    {latest.direction === 'UP' ? '▲ LONG' : '▼ SHORT'}
+                  <span 
+                    className="direction" 
+                    style={{ color: getSignalColor(getCombinedSignal(latest)) }}
+                  >
+                    {getCombinedSignal(latest)}
                   </span>
                   <span className="price">${latest.current_price?.toFixed(2)}</span>
                 </div>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <div className={`grade-badge grade-${latest.confluence?.grade?.replace('+', '-plus') || 'D'}`}>
-                  Grade {latest.confluence?.grade || '?'}
+                <div className={`grade-badge grade-${latest.grade?.replace('+', '-plus') || 'D'}`}>
+                  Grade {latest.grade || '?'}
                 </div>
-                <div className="score">{latest.confluence?.quality_score?.toFixed(1)}%</div>
-                {latest.should_skip && <div className="skipped-badge">⏭️ SKIPPED</div>}
+                <div className="score">{latest.confluence?.quality_score?.toFixed(1) ?? latest.confidence}%</div>
               </div>
             </div>
 
-            {/* Quick metrics row (compact) */}
+            {/* Quick metrics row */}
             <div className="metrics-grid" style={{ marginTop: '1rem' }}>
               <div className="metric"><div className="metric-label">ML Conf</div><div className="metric-value">{latest.confidence?.toFixed(1)}%</div></div>
               <div className="metric"><div className="metric-label">Effective</div><div className="metric-value metric-value-yellow">{latest.effective_confidence?.toFixed(1)}%</div></div>
@@ -105,36 +120,31 @@ export default function Home() {
               <div className="metric"><div className="metric-label">ADX</div><div className="metric-value">{latest.adx?.toFixed(1)}</div></div>
               <div className="metric"><div className="metric-label">ATR</div><div className="metric-value">${latest.atr?.toFixed(2)}</div></div>
               <div className="metric"><div className="metric-label">Spread</div><div className="metric-value metric-value-yellow">{latest.spread_points}pts</div></div>
+              <div className="metric"><div className="metric-label">Session</div><div className="metric-value">{latest.session_name || '—'}</div></div>
+              <div className="metric"><div className="metric-label">Signal</div><div className="metric-value">{latest.signal_strength || getCombinedSignal(latest)}</div></div>
             </div>
-
-            {latest.should_skip && latest.skip_reason && (
-              <div className="skip-box" style={{ marginTop: '1rem' }}>
-                <div className="skip-title">⏭️ SKIP REASON (P{latest.skip_priority})</div>
-                <div style={{ fontSize: '0.875rem', marginTop: '0.25rem' }}>{latest.skip_reason}</div>
-              </div>
-            )}
           </div>
 
-          {/* 2. Trade Checklist – beginner-friendly summary of what to check before trading */}
-          <TradeChecklist prediction={latest} />
+          {/* Trade Checklist – only if valid trade */}
+          {isValidTrade && <TradeChecklist prediction={latest} />}
 
-          {/* 3. Trade Plan (SL/TP, risk, R:R) – most important for execution */}
-          <TradePlanCard risk={latest.risk} direction={latest.direction} currentPrice={latest.current_price} />
+          {/* Trade Plan – only if valid trade */}
+          {isValidTrade && <TradePlanCard risk={latest.risk} direction={latest.direction} currentPrice={latest.current_price} />}
 
-          {/* 4. Market Structure – Order Blocks, FVGs, Liquidity, S/R (key for entry zones) */}
+          {/* Market Structure */}
           <StructureDetails structure={latest.structure} atr={latest.atr} currentPrice={latest.current_price} />
 
-          {/* 5. HTF Alignment & Regime (context for trade direction) */}
+          {/* HTF Alignment & Regime */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
             <div className="info-box">
               <div className="info-title">Multi-Timeframe Alignment</div>
               <div className="alignment-stats">
-                <div>Bullish TFs: <span className="bullish-text">{latest.bull_htf_count || 0}/4</span></div>
-                <div>Bearish TFs: <span className="bearish-text">{latest.bear_htf_count || 0}/4</span></div>
+                <div>Bullish TFs: <span className="bullish-text">{latest.bull_htf_count ?? 0}/4</span></div>
+                <div>Bearish TFs: <span className="bearish-text">{latest.bear_htf_count ?? 0}/4</span></div>
               </div>
               {latest.snapshot && (
                 <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#9ca3af' }}>
-                  M5: {latest.snapshot.m5_price_vs_ema20?.toFixed(2)} ATR &nbsp;|&nbsp;
+                  M5 vs EMA20: {latest.snapshot.m5_price_vs_ema20?.toFixed(2)} ATR &nbsp;|&nbsp;
                   M15: {latest.snapshot.m15_price_vs_ema20?.toFixed(2)} &nbsp;|&nbsp;
                   H1: {latest.snapshot.h1_price_vs_ema20?.toFixed(2)} &nbsp;|&nbsp;
                   H4: {latest.snapshot.h4_price_vs_ema20?.toFixed(2)}
@@ -144,16 +154,16 @@ export default function Home() {
             <RegimeDetails regime={latest.regime} />
           </div>
 
-          {/* 6. Risk Metrics (EV, drawdown, etc.) – important for position sizing */}
+          {/* Risk Metrics */}
           <RiskDetails risk={latest.risk} />
 
-          {/* 7. Confluence Components (detailed score breakdown) */}
-          <ConfluenceDetails confluence={latest.confluence} />
+          {/* Confluence Breakdown */}
+          <ConfluenceDetails confluence={latest.confluence} grade={latest.grade} />
 
-          {/* 8. Technical Snapshot (ADX, RSI, ATR percentile, support/resistance) */}
+          {/* Technical Snapshot */}
           <TechnicalSnapshot snapshot={latest.snapshot} adx={latest.adx} rsi={latest.rsi} atr={latest.atr} />
 
-          {/* 9. Macro & External Data (DXY, yields, VIX) */}
+          {/* Macro & External Data */}
           <MacroDetails 
             dxyReturn={latest.dxy_return}
             yieldChange={latest.yield_change}
@@ -164,7 +174,7 @@ export default function Home() {
             oilReturn={latest.oil_return}
           />
 
-          {/* 10. Full raw data (optional, for professionals) – collapsed into a modal */}
+          {/* Full JSON modal trigger */}
           <div style={{ textAlign: 'center', marginTop: '1rem' }}>
             <button 
               onClick={() => setSelectedPrediction(latest)} 
@@ -176,40 +186,42 @@ export default function Home() {
         </>
       )}
 
-      {/* History Table (simplified, shows only key fields) */}
+      {/* History Table */}
       <div className="history-table">
         <div className="history-header"><h2>📜 Prediction History (Last 50)</h2></div>
         <div className="table-wrapper">
           <table>
             <thead>
-              <tr><th>Time</th><th>Price</th><th>Dir</th><th>Conf</th><th>Grade</th><th>Regime</th><th>ADX</th><th>Skip</th></tr>
+              <tr><th>Time</th><th>Price</th><th>Signal</th><th>Conf</th><th>Grade</th><th>Regime</th><th>Session</th></tr>
             </thead>
             <tbody>
-              {predictions.map((pred: any) => (
-                <tr key={pred._id} onClick={() => setSelectedPrediction(pred)} style={{ cursor: 'pointer' }}>
-                  <td style={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}>{pred.server_time?.slice(5, 16)}</td>
-                  <td style={{ fontFamily: 'monospace' }}>${pred.current_price?.toFixed(2)}</td>
-                  <td className={pred.direction === 'UP' ? 'direction-up' : 'direction-down'} style={{ fontWeight: 'bold' }}>{pred.direction === 'UP' ? '▲' : '▼'}</td>
-                  <td>{pred.confidence?.toFixed(0)}%</td>
-                  <td><span className={`grade-badge grade-${pred.confluence?.grade?.replace('+', '-plus') || 'D'}`} style={{ fontSize: '0.75rem', padding: '0.125rem 0.5rem' }}>{pred.confluence?.grade || '?'}</span></td>
-                  <td>{getRegimeIcon(pred.regime?.regime)} {pred.regime?.regime?.replace('TRENDING_', '')}</td>
-                  <td>{pred.adx?.toFixed(0)}</td>
-                  <td>{pred.should_skip ? <span style={{ color: '#ef4444' }}>P{pred.skip_priority}</span> : <span style={{ color: '#22c55e' }}>✓</span>}</td>
-                </tr>
-              ))}
+              {predictions.map((pred: any) => {
+                const combined = pred.direction !== 'N/A' 
+                  ? `${pred.regime?.strength?.toUpperCase() || 'WEAK'} ${pred.direction === 'UP' ? 'LONG' : 'SHORT'}`
+                  : 'NO SIGNAL';
+                return (
+                  <tr key={pred._id} onClick={() => setSelectedPrediction(pred)} style={{ cursor: 'pointer' }}>
+                    <td style={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}>{pred.server_time?.slice(5, 16)}</td>
+                    <td style={{ fontFamily: 'monospace' }}>${pred.current_price?.toFixed(2)}</td>
+                    <td style={{ fontWeight: 'bold', color: combined.includes('LONG') ? '#22c55e' : combined.includes('SHORT') ? '#ef4444' : '#9ca3af' }}>{combined}</td>
+                    <td>{pred.confidence?.toFixed(0)}%</td>
+                    <td><span className={`grade-badge grade-${pred.grade?.replace('+', '-plus') || 'D'}`} style={{ fontSize: '0.75rem', padding: '0.125rem 0.5rem' }}>{pred.grade || '?'}</span></td>
+                    <td>{pred.regime?.regime?.replace('TRENDING_', '') || '?'}</td>
+                    <td>{pred.session_name || '—'}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* Modal for complete raw data */}
+      {/* Modal */}
       {selectedPrediction && (
         <FullPredictionModal prediction={selectedPrediction} onClose={() => setSelectedPrediction(null)} />
       )}
 
-      {/* Glossary (explains all terms, placed at the end for beginners) */}
       <Glossary />
-
       <div className="footer">
         <p>Predictions every :00 :15 :30 :45 UTC • Horizon: 15 min • Data from MongoDB Atlas</p>
       </div>
