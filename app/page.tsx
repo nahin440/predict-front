@@ -44,8 +44,10 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
-  // Helper: combine direction + strength
+  // Helper: use precomputed signal_strength from backend (e.g., "WEAK LONG", "STRONG SHORT")
   const getCombinedSignal = (pred: any) => {
+    if (pred.signal_strength) return pred.signal_strength;
+    // Fallback for older data that lacks signal_strength
     const dir = pred.direction;
     if (dir !== 'UP' && dir !== 'DOWN') return 'NO SIGNAL';
     const strength = pred.regime?.strength || 'Weak';
@@ -196,9 +198,12 @@ export default function Home() {
             </thead>
             <tbody>
               {predictions.map((pred: any) => {
-                const combined = pred.direction !== 'N/A' 
-                  ? `${pred.regime?.strength?.toUpperCase() || 'WEAK'} ${pred.direction === 'UP' ? 'LONG' : 'SHORT'}`
-                  : 'NO SIGNAL';
+                // Use precomputed signal_strength from backend; fallback to old method for safety
+                const combined = pred.signal_strength || (
+                  pred.direction !== 'N/A'
+                    ? `${pred.regime?.strength?.toUpperCase() || 'WEAK'} ${pred.direction === 'UP' ? 'LONG' : 'SHORT'}`
+                    : 'NO SIGNAL'
+                );
                 return (
                   <tr key={pred._id} onClick={() => setSelectedPrediction(pred)} style={{ cursor: 'pointer' }}>
                     <td style={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}>{pred.server_time?.slice(5, 16)}</td>
