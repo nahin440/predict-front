@@ -44,15 +44,15 @@ export default function Home() {
     return () => clearInterval(interval);
   }, []);
 
-  // Helper: use precomputed signal_strength from backend (e.g., "WEAK LONG", "STRONG SHORT")
+  // New rule: Strong if grade is A+ or A, otherwise Weak
   const getCombinedSignal = (pred: any) => {
-    if (pred.signal_strength) return pred.signal_strength;
-    // Fallback for older data that lacks signal_strength
     const dir = pred.direction;
     if (dir !== 'UP' && dir !== 'DOWN') return 'NO SIGNAL';
-    const strength = pred.regime?.strength || 'Weak';
+    const grade = pred.grade || '';
+    const isStrong = grade === 'A+' || grade === 'A';
+    const strength = isStrong ? 'STRONG' : 'WEAK';
     const directionText = dir === 'UP' ? 'LONG' : 'SHORT';
-    return `${strength.toUpperCase()} ${directionText}`;
+    return `${strength} ${directionText}`;
   };
 
   const getSignalColor = (combined: string) => {
@@ -123,7 +123,7 @@ export default function Home() {
               <div className="metric"><div className="metric-label">ATR</div><div className="metric-value">${latest.atr?.toFixed(2)}</div></div>
               <div className="metric"><div className="metric-label">Spread</div><div className="metric-value metric-value-yellow">{latest.spread_points}pts</div></div>
               <div className="metric"><div className="metric-label">Session</div><div className="metric-value">{latest.session_name || '—'}</div></div>
-              <div className="metric"><div className="metric-label">Signal</div><div className="metric-value">{latest.signal_strength || getCombinedSignal(latest)}</div></div>
+              <div className="metric"><div className="metric-label">Signal</div><div className="metric-value">{getCombinedSignal(latest)}</div></div>
             </div>
           </div>
 
@@ -198,12 +198,16 @@ export default function Home() {
             </thead>
             <tbody>
               {predictions.map((pred: any) => {
-                // Use precomputed signal_strength from backend; fallback to old method for safety
-                const combined = pred.signal_strength || (
-                  pred.direction !== 'N/A'
-                    ? `${pred.regime?.strength?.toUpperCase() || 'WEAK'} ${pred.direction === 'UP' ? 'LONG' : 'SHORT'}`
-                    : 'NO SIGNAL'
-                );
+                // Apply same grade-based rule for history table
+                const dir = pred.direction;
+                let combined = 'NO SIGNAL';
+                if (dir === 'UP' || dir === 'DOWN') {
+                  const grade = pred.grade || '';
+                  const isStrong = grade === 'A+' || grade === 'A';
+                  const strength = isStrong ? 'STRONG' : 'WEAK';
+                  const directionText = dir === 'UP' ? 'LONG' : 'SHORT';
+                  combined = `${strength} ${directionText}`;
+                }
                 return (
                   <tr key={pred._id} onClick={() => setSelectedPrediction(pred)} style={{ cursor: 'pointer' }}>
                     <td style={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}>{pred.server_time?.slice(5, 16)}</td>
