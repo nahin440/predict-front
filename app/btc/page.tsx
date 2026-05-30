@@ -12,7 +12,7 @@ import TechnicalSnapshot from '../components/TechnicalSnapshot';
 import MacroDetails from '../components/MacroDetails';
 import FullPredictionModal from '../components/FullPredictionModal';
 import Glossary from '../components/Glossary';
-import './btc.css'; // we'll create a custom CSS file for BTC theme
+import './btc.css';
 
 export default function BTCHome() {
   const [predictions, setPredictions] = useState<any[]>([]);
@@ -70,11 +70,11 @@ export default function BTCHome() {
     );
   }
 
+  // Only show trade plan and checklist if there is a valid trade (direction not N/A and risk.sl > 0)
   const isValidTrade = latest && latest.direction !== 'N/A' && latest.risk?.sl > 0;
 
   return (
     <div className="btc-container">
-      {/* Header with switch button */}
       <div className="btc-header">
         <div>
           <h1>₿ BTCUSD PREDICTOR</h1>
@@ -92,8 +92,9 @@ export default function BTCHome() {
         </div>
       </div>
 
-      {latest && (
+      {latest ? (
         <>
+          {/* Top Card – always show */}
           <div className="btc-card card-active">
             <div className="card-header">
               <div>
@@ -127,10 +128,18 @@ export default function BTCHome() {
             </div>
           </div>
 
-          {isValidTrade && <TradeChecklist prediction={latest} />}
-          {isValidTrade && <TradePlanCard risk={latest.risk} direction={latest.direction} currentPrice={latest.current_price} />}
+          {/* Trade Checklist & Plan – only for valid trades */}
+          {isValidTrade && (
+            <>
+              <TradeChecklist prediction={latest} />
+              <TradePlanCard risk={latest.risk} direction={latest.direction} currentPrice={latest.current_price} />
+            </>
+          )}
+
+          {/* Structure Details – always show */}
           <StructureDetails structure={latest.structure} atr={latest.atr} currentPrice={latest.current_price} />
           
+          {/* HTF Alignment & Regime – always show */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
             <div className="info-box btc-info">
               <div className="info-title">Multi-Timeframe Alignment</div>
@@ -150,9 +159,16 @@ export default function BTCHome() {
             <RegimeDetails regime={latest.regime} />
           </div>
 
+          {/* Risk Metrics – always show (but may have zeros) */}
           <RiskDetails risk={latest.risk} />
+          
+          {/* Confluence – always show */}
           <ConfluenceDetails confluence={latest.confluence} grade={latest.grade} />
+          
+          {/* Technical Snapshot – always show */}
           <TechnicalSnapshot snapshot={latest.snapshot} adx={latest.adx} rsi={latest.rsi} atr={latest.atr} />
+          
+          {/* Macro Details – always show */}
           <MacroDetails 
             dxyReturn={latest.dxy_return}
             yieldChange={latest.yield_change}
@@ -166,49 +182,56 @@ export default function BTCHome() {
           <div style={{ textAlign: 'center', marginTop: '1rem' }}>
             <button 
               onClick={() => setSelectedPrediction(latest)} 
+              className="view-json-btn"
               style={{ background: '#1f2937', border: '1px solid #f7931a', padding: '0.5rem 1rem', borderRadius: '0.5rem', color: '#f7931a', cursor: 'pointer' }}
             >
               🔍 View Full JSON Data (Advanced)
             </button>
           </div>
         </>
+      ) : (
+        <div className="card card-skipped" style={{ textAlign: 'center', padding: '2rem' }}>
+          <p>No BTC predictions available yet. Wait for the next cycle (:00, :15, :30, :45 UTC).</p>
+        </div>
       )}
 
-      {/* History Table (BTC themed) */}
-      <div className="history-table btc-history">
-        <div className="history-header"><h2>📜 BTC Prediction History (Last 50)</h2></div>
-        <div className="table-wrapper">
-          <table>
-            <thead>
-              <tr><th>Time</th><th>Price</th><th>Signal</th><th>Conf</th><th>Grade</th><th>Regime</th><th>Session</th></tr>
-            </thead>
-            <tbody>
-              {predictions.map((pred: any) => {
-                const dir = pred.direction;
-                let combined = 'NO SIGNAL';
-                if (dir === 'UP' || dir === 'DOWN') {
-                  const grade = pred.grade || '';
-                  const isStrong = grade === 'A+' || grade === 'A';
-                  const strength = isStrong ? 'STRONG' : 'WEAK';
-                  const directionText = dir === 'UP' ? 'LONG' : 'SHORT';
-                  combined = `${strength} ${directionText}`;
-                }
-                return (
-                  <tr key={pred._id} onClick={() => setSelectedPrediction(pred)} style={{ cursor: 'pointer' }}>
-                    <td style={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}>{pred.server_time?.slice(5, 16)}</td>
-                    <td style={{ fontFamily: 'monospace' }}>${pred.current_price?.toFixed(2)}</td>
-                    <td style={{ fontWeight: 'bold', color: combined.includes('LONG') ? '#22c55e' : combined.includes('SHORT') ? '#ef4444' : '#9ca3af' }}>{combined}</td>
-                    <td>{pred.confidence?.toFixed(0)}%</td>
-                    <td><span className={`grade-badge grade-${pred.grade?.replace('+', '-plus') || 'D'}`} style={{ fontSize: '0.75rem', padding: '0.125rem 0.5rem' }}>{pred.grade || '?'}</span></td>
-                    <td>{pred.regime?.regime?.replace('TRENDING_', '') || '?'}</td>
-                    <td>{pred.session_name || '—'}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+      {/* History Table – always show */}
+      {predictions.length > 0 && (
+        <div className="history-table btc-history">
+          <div className="history-header"><h2>📜 BTC Prediction History (Last 50)</h2></div>
+          <div className="table-wrapper">
+            <table>
+              <thead>
+                <tr><th>Time</th><th>Price</th><th>Signal</th><th>Conf</th><th>Grade</th><th>Regime</th><th>Session</th></tr>
+              </thead>
+              <tbody>
+                {predictions.map((pred: any) => {
+                  const dir = pred.direction;
+                  let combined = 'NO SIGNAL';
+                  if (dir === 'UP' || dir === 'DOWN') {
+                    const grade = pred.grade || '';
+                    const isStrong = grade === 'A+' || grade === 'A';
+                    const strength = isStrong ? 'STRONG' : 'WEAK';
+                    const directionText = dir === 'UP' ? 'LONG' : 'SHORT';
+                    combined = `${strength} ${directionText}`;
+                  }
+                  return (
+                    <tr key={pred._id} onClick={() => setSelectedPrediction(pred)} style={{ cursor: 'pointer' }}>
+                      <td style={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}>{pred.server_time?.slice(5, 16)}</td>
+                      <td style={{ fontFamily: 'monospace' }}>${pred.current_price?.toFixed(2)}</td>
+                      <td style={{ fontWeight: 'bold', color: combined.includes('LONG') ? '#22c55e' : combined.includes('SHORT') ? '#ef4444' : '#9ca3af' }}>{combined}</td>
+                      <td>{pred.confidence?.toFixed(0)}%</td>
+                      <td><span className={`grade-badge grade-${pred.grade?.replace('+', '-plus') || 'D'}`} style={{ fontSize: '0.75rem', padding: '0.125rem 0.5rem' }}>{pred.grade || '?'}</span></td>
+                      <td>{pred.regime?.regime?.replace('TRENDING_', '') || '?'}</td>
+                      <td>{pred.session_name || '—'}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
+      )}
 
       {selectedPrediction && (
         <FullPredictionModal prediction={selectedPrediction} onClose={() => setSelectedPrediction(null)} />
