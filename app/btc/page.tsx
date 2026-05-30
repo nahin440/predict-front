@@ -2,18 +2,19 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import TradeChecklist from './components/TradeChecklist';
-import TradePlanCard from './components/TradePlanCard';
-import StructureDetails from './components/StructureDetails';
-import RiskDetails from './components/RiskDetails';
-import ConfluenceDetails from './components/ConfluenceDetails';
-import RegimeDetails from './components/RegimeDetails';
-import TechnicalSnapshot from './components/TechnicalSnapshot';
-import MacroDetails from './components/MacroDetails';
-import FullPredictionModal from './components/FullPredictionModal';
-import Glossary from './components/Glossary';
+import TradeChecklist from '../components/TradeChecklist';
+import TradePlanCard from '../components/TradePlanCard';
+import StructureDetails from '../components/StructureDetails';
+import RiskDetails from '../components/RiskDetails';
+import ConfluenceDetails from '../components/ConfluenceDetails';
+import RegimeDetails from '../components/RegimeDetails';
+import TechnicalSnapshot from '../components/TechnicalSnapshot';
+import MacroDetails from '../components/MacroDetails';
+import FullPredictionModal from '../components/FullPredictionModal';
+import Glossary from '../components/Glossary';
+import './btc.css'; // we'll create a custom CSS file for BTC theme
 
-export default function Home() {
+export default function BTCHome() {
   const [predictions, setPredictions] = useState<any[]>([]);
   const [latest, setLatest] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -24,8 +25,8 @@ export default function Home() {
     try {
       const timestamp = Date.now();
       const [latestRes, historyRes] = await Promise.all([
-        fetch(`/api/predictions/latest?t=${timestamp}`),
-        fetch(`/api/predictions?limit=50&t=${timestamp}`),
+        fetch(`/api/predictions/btc/latest?t=${timestamp}`),
+        fetch(`/api/predictions/btc?limit=50&t=${timestamp}`),
       ]);
       const latestData = await latestRes.json();
       const historyData = await historyRes.json();
@@ -33,7 +34,7 @@ export default function Home() {
       setPredictions(historyData.predictions || []);
       setLastUpdated(new Date());
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('Error fetching BTC data:', error);
     } finally {
       setLoading(false);
     }
@@ -63,8 +64,8 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="loading">
-        <div className="loading-text">Loading XAUUSD Predictions...</div>
+      <div className="loading btc-loading">
+        <div className="loading-text">Loading BTC Predictions...</div>
       </div>
     );
   }
@@ -72,11 +73,11 @@ export default function Home() {
   const isValidTrade = latest && latest.direction !== 'N/A' && latest.risk?.sl > 0;
 
   return (
-    <div className="container">
+    <div className="btc-container">
       {/* Header with switch button */}
-      <div className="header">
+      <div className="btc-header">
         <div>
-          <h1>🚀 XAUUSD PREDICTOR</h1>
+          <h1>₿ BTCUSD PREDICTOR</h1>
           <p>Real-time 15-min horizon predictions • Updates every 30s</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -84,18 +85,16 @@ export default function Home() {
             <div className="last-updated-label">Last Updated</div>
             <div className="last-updated-time">{lastUpdated.toLocaleTimeString()}</div>
           </div>
-          <button className="refresh-btn" onClick={fetchData}>🔄 Refresh</button>
-          <Link href="/btc">
-            <button className="switch-btn" style={{ padding: '0.5rem 1rem', background: '#1f2937', border: '1px solid #fbbf24', borderRadius: '0.5rem', color: '#fbbf24', cursor: 'pointer', fontSize: '0.875rem', fontWeight: '500' }}>
-              ₿ BTC →
-            </button>
+          <button className="refresh-btn btc-refresh" onClick={fetchData}>🔄 Refresh</button>
+          <Link href="/">
+            <button className="switch-btn">📈 XAUUSD →</button>
           </Link>
         </div>
       </div>
 
       {latest && (
         <>
-          <div className="card card-active">
+          <div className="btc-card card-active">
             <div className="card-header">
               <div>
                 <div className="time">{latest.server_time}</div>
@@ -116,7 +115,7 @@ export default function Home() {
                 <div className="score">{latest.confluence?.quality_score?.toFixed(1) ?? latest.confidence}%</div>
               </div>
             </div>
-            <div className="metrics-grid" style={{ marginTop: '1rem' }}>
+            <div className="metrics-grid">
               <div className="metric"><div className="metric-label">ML Conf</div><div className="metric-value">{latest.confidence?.toFixed(1)}%</div></div>
               <div className="metric"><div className="metric-label">Effective</div><div className="metric-value metric-value-yellow">{latest.effective_confidence?.toFixed(1)}%</div></div>
               <div className="metric"><div className="metric-label">P(UP)</div><div className="metric-value">{latest.prob_up ? (latest.prob_up * 100).toFixed(1) : '0'}%</div></div>
@@ -133,7 +132,7 @@ export default function Home() {
           <StructureDetails structure={latest.structure} atr={latest.atr} currentPrice={latest.current_price} />
           
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem', marginBottom: '1.5rem' }}>
-            <div className="info-box">
+            <div className="info-box btc-info">
               <div className="info-title">Multi-Timeframe Alignment</div>
               <div className="alignment-stats">
                 <div>Bullish TFs: <span className="bullish-text">{latest.bull_htf_count ?? 0}/4</span></div>
@@ -167,7 +166,7 @@ export default function Home() {
           <div style={{ textAlign: 'center', marginTop: '1rem' }}>
             <button 
               onClick={() => setSelectedPrediction(latest)} 
-              style={{ background: '#1f2937', border: '1px solid #374151', padding: '0.5rem 1rem', borderRadius: '0.5rem', color: '#9ca3af', cursor: 'pointer' }}
+              style={{ background: '#1f2937', border: '1px solid #f7931a', padding: '0.5rem 1rem', borderRadius: '0.5rem', color: '#f7931a', cursor: 'pointer' }}
             >
               🔍 View Full JSON Data (Advanced)
             </button>
@@ -175,9 +174,9 @@ export default function Home() {
         </>
       )}
 
-      {/* History Table */}
-      <div className="history-table">
-        <div className="history-header"><h2>📜 Prediction History (Last 50)</h2></div>
+      {/* History Table (BTC themed) */}
+      <div className="history-table btc-history">
+        <div className="history-header"><h2>📜 BTC Prediction History (Last 50)</h2></div>
         <div className="table-wrapper">
           <table>
             <thead>
@@ -217,7 +216,7 @@ export default function Home() {
 
       <Glossary />
       <div className="footer">
-        <p>Predictions every :00 :15 :30 :45 UTC • Horizon: 15 min • Data from MongoDB Atlas (xau_dashboard)</p>
+        <p>BTC Predictions every :00 :15 :30 :45 UTC • Horizon: 15 min • Data from MongoDB Atlas (btc_dashboard)</p>
       </div>
     </div>
   );
