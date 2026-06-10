@@ -1,8 +1,8 @@
 import './globals.css'
 
 export const metadata = {
-  title: 'XAUUSD — Celestial Terminal',
-  description: 'Real-time XAUUSD predictions with 15-min horizon · Mechanical Watch System',
+  title: 'XAUUSD — Apex Terminal',
+  description: 'Real-time XAUUSD predictions · 15-min horizon · ML-powered',
 }
 
 export default function RootLayout({
@@ -15,21 +15,20 @@ export default function RootLayout({
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* Anime.js v3 from CDN */}
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" async />
         <script
           dangerouslySetInnerHTML={{
             __html: `
 (function() {
-  // Anime.js-style mechanical gear system using Canvas
-  // Runs after DOM is ready
   window.addEventListener('DOMContentLoaded', function() {
     var canvas = document.createElement('canvas');
     canvas.id = 'gear-canvas';
-    canvas.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:0;width:100%;height:100%;';
+    canvas.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:1;width:100%;height:100%;';
     document.body.insertBefore(canvas, document.body.firstChild);
 
     var ctx = canvas.getContext('2d');
-    var W, H, dpr;
-    var raf;
+    var W, H, dpr, raf;
 
     function resize() {
       dpr = window.devicePixelRatio || 1;
@@ -44,125 +43,95 @@ export default function RootLayout({
     resize();
     window.addEventListener('resize', resize);
 
-    // Gear definition
-    function makeGear(cx, cy, outerR, innerR, teeth, speed, dir, strokeColor, fillColor) {
-      return { cx, cy, outerR, innerR, teeth, speed, dir, strokeColor, fillColor, angle: Math.random() * Math.PI * 2 };
-    }
-
-    var gears = [
-      // Top-left cluster
-      makeGear(120, 130, 105, 82, 16, 0.0045,  1, 'rgba(86,143,135,0.32)', 'rgba(86,143,135,0.06)'),
-      makeGear(275, 125,  64, 50, 12, 0.0072, -1, 'rgba(245,186,187,0.28)', 'rgba(245,186,187,0.05)'),
-      makeGear(380, 135,  42, 32,  9, 0.011,   1, 'rgba(6,66,50,0.22)', 'rgba(6,66,50,0.04)'),
-      // Top-right cluster
-      makeGear(W - 130, 150, 120, 95, 18, 0.0038, -1, 'rgba(6,66,50,0.22)', 'rgba(6,66,50,0.04)'),
-      makeGear(W - 268, 148,  72, 56, 12, 0.0065,  1, 'rgba(86,143,135,0.28)', 'rgba(86,143,135,0.05)'),
-      // Bottom-center
-      makeGear(W * 0.5, H - 90, 150, 120, 22, 0.003,   1, 'rgba(86,143,135,0.18)', 'rgba(86,143,135,0.03)'),
-      makeGear(W * 0.5 + 268, H - 85, 90, 70, 14, 0.0048, -1, 'rgba(245,186,187,0.24)', 'rgba(245,186,187,0.04)'),
-      // Bottom-left
-      makeGear(65, H - 80, 58, 44, 10, 0.008,   1, 'rgba(6,66,50,0.20)', 'rgba(6,66,50,0.04)'),
-      // Mid-right accent
-      makeGear(W - 45, H * 0.5, 55, 42, 10, 0.006,  -1, 'rgba(86,143,135,0.22)', 'rgba(86,143,135,0.04)'),
-    ];
-
-    function drawGear(g) {
-      var cx = g.cx, cy = g.cy, R = g.outerR, r = g.innerR, n = g.teeth, a = g.angle;
-      ctx.save();
-      ctx.translate(cx, cy);
-      ctx.rotate(a);
-
-      // Tooth path
+    function hexagon(cx, cy, r, rotation) {
       ctx.beginPath();
-      var step = (Math.PI * 2) / n;
-      for (var i = 0; i < n; i++) {
-        var a0 = i * step - step * 0.4;
-        var a1 = i * step - step * 0.15;
-        var a2 = i * step + step * 0.15;
-        var a3 = i * step + step * 0.4;
-        if (i === 0) ctx.moveTo(r * Math.cos(a0), r * Math.sin(a0));
-        else ctx.lineTo(r * Math.cos(a0), r * Math.sin(a0));
-        ctx.lineTo(R * Math.cos(a1), R * Math.sin(a1));
-        ctx.lineTo(R * Math.cos(a2), R * Math.sin(a2));
-        ctx.lineTo(r * Math.cos(a3), r * Math.sin(a3));
+      for (var i = 0; i < 6; i++) {
+        var a = rotation + (i * Math.PI * 2) / 6;
+        var x = cx + r * Math.cos(a);
+        var y = cy + r * Math.sin(a);
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
       }
       ctx.closePath();
-      ctx.fillStyle = g.fillColor;
-      ctx.fill();
-      ctx.strokeStyle = g.strokeColor;
-      ctx.lineWidth = 1.2;
-      ctx.stroke();
+    }
 
-      // Inner circle
-      ctx.beginPath();
-      ctx.arc(0, 0, r * 0.68, 0, Math.PI * 2);
-      ctx.strokeStyle = g.strokeColor;
-      ctx.lineWidth = 1;
-      ctx.stroke();
-
-      // Hub
-      ctx.beginPath();
-      ctx.arc(0, 0, r * 0.18, 0, Math.PI * 2);
-      ctx.fillStyle = g.strokeColor;
-      ctx.fill();
-
-      // Spoke lines
-      ctx.strokeStyle = g.strokeColor;
-      ctx.lineWidth = 0.7;
-      for (var s = 0; s < 6; s++) {
-        var sa = s * Math.PI / 3;
-        ctx.beginPath();
-        ctx.moveTo(r * 0.2 * Math.cos(sa), r * 0.2 * Math.sin(sa));
-        ctx.lineTo(r * 0.65 * Math.cos(sa), r * 0.65 * Math.sin(sa));
-        ctx.stroke();
+    // Grid of subtle hexagons in background
+    var hexGrid = [];
+    var hexR = 28;
+    var hexW = hexR * 2;
+    var hexH = Math.sqrt(3) * hexR;
+    var cols = Math.ceil(W / hexW) + 2;
+    var rows = Math.ceil(H / hexH) + 2;
+    for (var row = -1; row < rows; row++) {
+      for (var col = -1; col < cols; col++) {
+        var hx = col * hexW * 0.75;
+        var hy = row * hexH + (col % 2 === 0 ? 0 : hexH * 0.5);
+        hexGrid.push({ x: hx, y: hy, phase: Math.random() * Math.PI * 2 });
       }
+    }
 
+    // Grid lines (circuit board style)
+    function drawCircuitGrid() {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(0,198,215,0.028)';
+      ctx.lineWidth = 0.5;
+      var spacing = 48;
+      for (var x = 0; x < W; x += spacing) {
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+      }
+      for (var y = 0; y < H; y += spacing) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+      }
       ctx.restore();
     }
 
-    // Connecting rod between top-left pair
-    function drawRod(g1, g2) {
+    // Moving data particles
+    var particles = [];
+    for (var p = 0; p < 18; p++) {
+      particles.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        vx: (Math.random() - 0.5) * 0.3,
+        vy: (Math.random() - 0.5) * 0.3,
+        size: Math.random() * 1.5 + 0.5,
+        alpha: Math.random() * 0.35 + 0.05,
+        color: Math.random() > 0.6 ? '245,166,35' : '0,198,215',
+      });
+    }
+
+    // Corner ornament circles
+    var ornaments = [
+      { cx: 0,   cy: 0,   r: 120, speed: 0.0006,  dir: 1,  color: 'rgba(0,198,215,0.04)' },
+      { cx: W,   cy: 0,   r: 90,  speed: 0.0009,  dir: -1, color: 'rgba(245,166,35,0.03)' },
+      { cx: 0,   cy: H,   r: 80,  speed: 0.0007,  dir: 1,  color: 'rgba(0,198,215,0.03)' },
+      { cx: W,   cy: H,   r: 140, speed: 0.0005,  dir: -1, color: 'rgba(245,166,35,0.04)' },
+      { cx: W/2, cy: H/2, r: 200, speed: 0.0003,  dir: 1,  color: 'rgba(0,198,215,0.02)' },
+    ];
+    ornaments.forEach(function(o) { o.angle = Math.random() * Math.PI * 2; });
+
+    function drawOrnament(o) {
       ctx.save();
+      ctx.translate(o.cx, o.cy);
+      ctx.rotate(o.angle);
+      // Dashed ring
       ctx.beginPath();
-      ctx.moveTo(g1.cx, g1.cy);
-      ctx.lineTo(g2.cx, g2.cy);
-      ctx.strokeStyle = 'rgba(86,143,135,0.12)';
-      ctx.lineWidth = 1.5;
-      ctx.setLineDash([4, 8]);
+      ctx.arc(0, 0, o.r, 0, Math.PI * 2);
+      ctx.strokeStyle = o.color;
+      ctx.lineWidth = 0.8;
+      ctx.setLineDash([4, 12]);
       ctx.stroke();
       ctx.setLineDash([]);
-      ctx.restore();
-    }
-
-    // Pendulum
-    var pendulum = { angle: -0.15, velocity: 0, length: 80, cx: W * 0.5, top: 0 };
-    var pendulumGravity = 0.0012, pendulumDamping = 0.9996;
-
-    function updatePendulum() {
-      pendulum.velocity -= pendulumGravity * Math.sin(pendulum.angle);
-      pendulum.velocity *= pendulumDamping;
-      pendulum.angle += pendulum.velocity;
-    }
-
-    function drawPendulum() {
-      var px = pendulum.cx + Math.sin(pendulum.angle) * pendulum.length;
-      var py = pendulum.top + Math.cos(pendulum.angle) * pendulum.length;
-      ctx.save();
-      // Rod
-      ctx.beginPath();
-      ctx.moveTo(pendulum.cx, pendulum.top);
-      ctx.lineTo(px, py);
-      ctx.strokeStyle = 'rgba(86,143,135,0.20)';
-      ctx.lineWidth = 1.2;
-      ctx.stroke();
-      // Bob
-      ctx.beginPath();
-      ctx.arc(px, py, 5, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(245,186,187,0.45)';
-      ctx.fill();
-      ctx.strokeStyle = 'rgba(86,143,135,0.30)';
+      // Tick marks
+      ctx.strokeStyle = o.color.replace(')', ', 1.5)').replace('rgba(', 'rgba(');
       ctx.lineWidth = 1;
-      ctx.stroke();
+      for (var t = 0; t < 8; t++) {
+        var ta = (t / 8) * Math.PI * 2;
+        var tx1 = (o.r - 5) * Math.cos(ta);
+        var ty1 = (o.r - 5) * Math.sin(ta);
+        var tx2 = (o.r + 5) * Math.cos(ta);
+        var ty2 = (o.r + 5) * Math.sin(ta);
+        ctx.beginPath(); ctx.moveTo(tx1, ty1); ctx.lineTo(tx2, ty2); ctx.stroke();
+      }
       ctx.restore();
     }
 
@@ -170,54 +139,80 @@ export default function RootLayout({
 
     function loop(now) {
       raf = requestAnimationFrame(loop);
-      var dt = (now - then);
+      var dt = Math.min(now - then, 100);
       then = now;
-      if (dt > 100) dt = 100; // cap on tab switch
 
       ctx.clearRect(0, 0, W, H);
 
-      // Update gear angles
-      for (var i = 0; i < gears.length; i++) {
-        gears[i].angle += gears[i].speed * gears[i].dir * dt * 0.05;
-      }
+      drawCircuitGrid();
 
-      updatePendulum();
+      // Update + draw ornaments
+      ornaments.forEach(function(o) {
+        o.angle += o.speed * o.dir * dt;
+        drawOrnament(o);
+      });
 
-      // Draw connecting rods first
-      drawRod(gears[0], gears[1]);
-      drawRod(gears[1], gears[2]);
-      drawRod(gears[3], gears[4]);
-      drawRod(gears[5], gears[6]);
-
-      // Draw gears
-      for (var j = 0; j < gears.length; j++) drawGear(gears[j]);
-
-      // Draw pendulum at bottom-center gear
-      pendulum.cx = gears[5].cx;
-      pendulum.top = gears[5].cy - gears[5].innerR;
-      drawPendulum();
-
-      // Subtle tick-mark arcs (watch face style)
-      ctx.save();
-      ctx.strokeStyle = 'rgba(86,143,135,0.12)';
-      ctx.lineWidth = 0.8;
-      for (var t = 0; t < 12; t++) {
-        var ta = (t / 12) * Math.PI * 2;
-        var tx = gears[5].cx + Math.cos(ta) * (gears[5].outerR + 15);
-        var ty = gears[5].cy + Math.sin(ta) * (gears[5].outerR + 15);
+      // Update + draw particles
+      particles.forEach(function(p) {
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        if (p.x < 0) p.x = W;
+        if (p.x > W) p.x = 0;
+        if (p.y < 0) p.y = H;
+        if (p.y > H) p.y = 0;
         ctx.beginPath();
-        ctx.arc(tx, ty, 2, 0, Math.PI * 2);
-        ctx.stroke();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(' + p.color + ',' + p.alpha + ')';
+        ctx.fill();
+      });
+
+      // Connect nearby particles with lines
+      for (var i = 0; i < particles.length; i++) {
+        for (var j = i + 1; j < particles.length; j++) {
+          var dx = particles[i].x - particles[j].x;
+          var dy = particles[i].y - particles[j].y;
+          var dist = Math.sqrt(dx*dx + dy*dy);
+          if (dist < 120) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            var alpha = (1 - dist / 120) * 0.08;
+            ctx.strokeStyle = 'rgba(0,198,215,' + alpha + ')';
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+        }
       }
-      ctx.restore();
     }
 
     loop(performance.now());
 
-    // Cleanup
     window.addEventListener('beforeunload', function() {
       cancelAnimationFrame(raf);
     });
+
+    // ── Anime.js entrance animations (fire after short delay) ──
+    function tryAnime() {
+      if (!window.anime) { setTimeout(tryAnime, 100); return; }
+      // Stagger cards
+      anime({
+        targets: '.info-box, .trade-plan, .history-table, .signal-card',
+        opacity: [0, 1],
+        translateY: [20, 0],
+        delay: anime.stagger(60, { start: 200 }),
+        duration: 600,
+        easing: 'easeOutExpo',
+      });
+      // Shimmer the top border of signal card
+      anime({
+        targets: '.signal-card::before',
+        backgroundPositionX: ['0%', '200%'],
+        duration: 3000,
+        loop: true,
+        easing: 'linear',
+      });
+    }
+    tryAnime();
   });
 })();
             `,

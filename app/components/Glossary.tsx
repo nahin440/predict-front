@@ -1,4 +1,5 @@
 'use client';
+import { TbBook2 } from 'react-icons/tb';
 
 const glossaryTerms = [
   { term: "ADX",            full: "Average Directional Index",     definition: "Measures trend strength. 0–25: ranging/weak, 25–50: trending, >50: strong trend. Filters low-momentum markets." },
@@ -24,94 +25,41 @@ const glossaryTerms = [
 ];
 
 const ACCENT_COLORS = [
-  'var(--forest)',
-  'var(--teal)',
-  'var(--rose-dark)',
+  'var(--cyan)',
+  'var(--bull)',
   'var(--amber)',
+  'var(--bear)',
+  'var(--cyan-bright)',
   'var(--bull-bright)',
-  'var(--teal-bright)',
 ];
 
 export default function Glossary() {
   return (
     <div style={{
-      background: 'var(--bg-card)',
+      background: 'var(--bg-elevated)',
       border: '1px solid var(--border-dim)',
-      borderRadius: '0.875rem',
+      borderRadius: '0.75rem',
       padding: '1.75rem',
-      margin: '1.5rem 0',
+      margin: '0 0 1.5rem',
       position: 'relative',
       overflow: 'hidden',
-      boxShadow: '0 2px 16px rgba(6,66,50,0.06)',
     }}>
-      {/* Watermark gear */}
-      <div style={{
-        position: 'absolute',
-        right: '-2rem',
-        top: '50%',
-        transform: 'translateY(-50%)',
-        fontSize: '18rem',
-        color: 'var(--border-dim)',
-        lineHeight: 1,
-        pointerEvents: 'none',
-        userSelect: 'none',
-        opacity: 0.4,
-        animation: 'gearSpin 60s linear infinite',
-        transformOrigin: 'center',
-      }}>
-        ⚙
-      </div>
-
-      {/* Header */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: '1rem',
-        marginBottom: '1.5rem',
-        paddingBottom: '1rem',
-        borderBottom: '1px solid var(--border-dim)',
-        position: 'relative',
-      }}>
-        <span style={{ fontSize: '1.4rem' }}>📖</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid var(--border-faint)', position: 'relative' }}>
+        <TbBook2 size={18} style={{ color: 'var(--cyan)' }} />
         <div>
-          <h2 style={{
-            fontFamily: "'Bebas Neue', sans-serif",
-            fontSize: '1.3rem',
-            fontWeight: 400,
-            color: 'var(--forest)',
-            letterSpacing: '0.08em',
-          }}>
-            Complete Glossary
+          <h2 style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: '1rem', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>
+            Glossary
           </h2>
-          <p style={{
-            fontFamily: "'JetBrains Mono', monospace",
-            fontSize: '0.58rem',
-            color: 'var(--text-muted)',
-            letterSpacing: '0.06em',
-            marginTop: '0.2rem',
-          }}>
-            Every term used in the prediction engine — defined
+          <p style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.56rem', color: 'var(--text-muted)', letterSpacing: '0.06em', marginTop: '0.15rem' }}>
+            Every term used in the prediction engine
           </p>
         </div>
-        <div style={{
-          marginLeft: 'auto',
-          fontFamily: "'JetBrains Mono', monospace",
-          fontSize: '2rem',
-          fontWeight: 700,
-          color: 'var(--border-accent)',
-          letterSpacing: '-0.03em',
-        }}>
+        <div style={{ marginLeft: 'auto', fontFamily: "'Space Grotesk', sans-serif", fontSize: '1.75rem', fontWeight: 800, color: 'var(--border-subtle)', letterSpacing: '-0.04em' }}>
           {glossaryTerms.length}
         </div>
       </div>
 
-      {/* Grid */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(285px, 1fr))',
-        gap: '0.65rem',
-        position: 'relative',
-      }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))', gap: '0.6rem', position: 'relative' }}>
         {glossaryTerms.map((item, idx) => {
           const accent = ACCENT_COLORS[idx % ACCENT_COLORS.length];
           return (
@@ -119,77 +67,37 @@ export default function Glossary() {
               key={idx}
               style={{
                 padding: '0.875rem 1rem',
-                background: 'var(--bg-silk)',
-                border: '1px solid var(--border-dim)',
-                borderLeft: `3px solid ${accent}`,
-                borderRadius: '0.6rem',
-                transition: 'transform 0.25s, border-color 0.25s, box-shadow 0.25s, background 0.25s',
+                background: 'var(--bg-surface)',
+                border: '1px solid var(--border-faint)',
+                borderLeft: `2px solid ${accent}`,
+                borderRadius: '0.5rem',
+                transition: 'transform var(--t-med) var(--ease-std), border-color var(--t-med) var(--ease-std), background var(--t-med) var(--ease-std)',
                 cursor: 'default',
-                animation: `fadeSlideUp 0.4s ${idx * 0.016}s var(--ease-out) both`,
+                animation: `fadeUp 0.35s ${idx * 0.012}s var(--ease) both`,
                 position: 'relative',
                 overflow: 'hidden',
               }}
               onMouseEnter={e => {
                 const el = e.currentTarget as HTMLDivElement;
-                el.style.transform = 'translateY(-3px)';
-                el.style.borderColor = `${accent}45`;
-                el.style.borderLeftColor = accent;
-                el.style.boxShadow = '0 8px 24px rgba(6,66,50,0.08)';
-                el.style.background = 'var(--bg-card-hover)';
+                el.style.transform = 'translateY(-2px)';
+                el.style.background = 'var(--bg-overlay)';
               }}
               onMouseLeave={e => {
                 const el = e.currentTarget as HTMLDivElement;
                 el.style.transform = 'none';
-                el.style.borderColor = 'var(--border-dim)';
-                el.style.borderLeftColor = accent;
-                el.style.boxShadow = 'none';
-                el.style.background = 'var(--bg-silk)';
+                el.style.background = 'var(--bg-surface)';
               }}
             >
-              {/* Subtle watermark */}
-              <div style={{
-                position: 'absolute',
-                right: '0.5rem',
-                bottom: '-0.4rem',
-                fontSize: '2.2rem',
-                fontWeight: 900,
-                color: accent,
-                opacity: 0.06,
-                lineHeight: 1,
-                pointerEvents: 'none',
-                userSelect: 'none',
-              }}>
-                {item.term[0]}
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.38rem' }}>
-                <div style={{
-                  fontFamily: "'Bebas Neue', sans-serif",
-                  fontSize: '0.95rem',
-                  fontWeight: 400,
-                  color: accent,
-                  letterSpacing: '0.06em',
-                }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.35rem' }}>
+                <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: '0.85rem', fontWeight: 700, color: accent, letterSpacing: '0.02em' }}>
                   {item.term}
                 </div>
-                <div style={{
-                  fontFamily: "'JetBrains Mono', monospace",
-                  fontSize: '0.52rem',
-                  color: 'var(--text-muted)',
-                  maxWidth: '130px',
-                  textAlign: 'right',
-                  lineHeight: 1.35,
-                }}>
+                <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.5rem', color: 'var(--text-muted)', maxWidth: '120px', textAlign: 'right', lineHeight: 1.35 }}>
                   {item.full}
                 </div>
               </div>
 
-              <div style={{
-                fontFamily: "'DM Mono', monospace",
-                fontSize: '0.76rem',
-                color: 'var(--text-secondary)',
-                lineHeight: 1.55,
-              }}>
+              <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: '0.72rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
                 {item.definition}
               </div>
             </div>
@@ -197,19 +105,8 @@ export default function Glossary() {
         })}
       </div>
 
-      {/* Footer */}
-      <div style={{
-        marginTop: '1.25rem',
-        paddingTop: '1rem',
-        borderTop: '1px solid var(--border-dim)',
-        textAlign: 'center',
-        fontFamily: "'JetBrains Mono', monospace",
-        fontSize: '0.58rem',
-        color: 'var(--text-muted)',
-        letterSpacing: '0.07em',
-        position: 'relative',
-      }}>
-        ⚙ These terms are used throughout the prediction engine ⚙
+      <div style={{ marginTop: '1.25rem', paddingTop: '0.875rem', borderTop: '1px solid var(--border-faint)', textAlign: 'center', fontFamily: "'JetBrains Mono', monospace", fontSize: '0.55rem', color: 'var(--text-faint)', letterSpacing: '0.08em' }}>
+        XAUUSD APEX TERMINAL · PREDICTION ENGINE REFERENCE
       </div>
     </div>
   );
