@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
 import { useAuth } from "@/lib/auth/AuthContext";
-import { auth, googleProvider, signInWithPopup } from "@/lib/firebase/client";
 
 function GoogleIcon() {
   return (
@@ -17,30 +16,39 @@ function GoogleIcon() {
   );
 }
 
+function Spinner() {
+  return (
+    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" style={{ width: 16, height: 16, animation: "spin 0.8s linear infinite" }}>
+      <circle style={{ opacity: 0.25 }} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+      <path style={{ opacity: 0.75 }} fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </svg>
+  );
+}
+
 function LoginForm() {
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") || "/dashboard";
   const { login } = useAuth();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading]       = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [form, setForm] = useState({ email: "", password: "" });
-  const [showPass, setShowPass] = useState(false);
+  const [form, setForm]             = useState({ email: "", password: "" });
+  const [showPass, setShowPass]     = useState(false);
 
-  // After login() persists to localStorage, do hard redirect
   function doRedirect(role: string) {
-    const dest = role === "ADMIN" ? "/admin" : redirect;
-    // Small timeout ensures localStorage is written before navigation
-    setTimeout(() => { window.location.href = dest; }, 80);
+    setTimeout(() => {
+      window.location.href = role === "ADMIN" ? "/admin" : redirect;
+    }, 80);
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/login", {
+      const res  = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form)
+        body: JSON.stringify(form),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Login failed");
@@ -56,12 +64,20 @@ function LoginForm() {
   async function handleGoogle() {
     setGoogleLoading(true);
     try {
-      const result = await signInWithPopup(auth, googleProvider);
-      const fb = result.user;
-      const res = await fetch("/api/auth/google", {
+      // Lazy-import so Firebase never runs during SSR/prerender
+      const { signInWithGoogle } = await import("@/lib/firebase/client");
+      const result = await signInWithGoogle();
+      const fb     = result.user;
+
+      const res  = await fetch("/api/auth/google", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ uid: fb.uid, email: fb.email, name: fb.displayName, photoURL: fb.photoURL })
+        body: JSON.stringify({
+          uid:      fb.uid,
+          email:    fb.email,
+          name:     fb.displayName,
+          photoURL: fb.photoURL,
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Google sign-in failed");
@@ -76,29 +92,44 @@ function LoginForm() {
   }
 
   return (
-    <div className="w-full max-w-md animate-slide-up">
-      <div className="card p-8">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-black tracking-tight mb-2">Welcome Back</h1>
-          <p className="text-sm text-[#62626f]">Sign in to your GoldPredict account</p>
+    <div style={{ width: "100%", maxWidth: 420, animation: "fadeUp 0.4s ease both" }}>
+      <style>{`@keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }`}</style>
+
+      <div className="card" style={{ padding: 36 }}>
+        <div style={{ textAlign: "center", marginBottom: 28 }}>
+          <h1 style={{ fontFamily: "Syne", fontSize: 26, fontWeight: 800, letterSpacing: "-0.03em", marginBottom: 6 }}>Welcome Back</h1>
+          <p style={{ fontFamily: "DM Sans", fontSize: 13, color: "var(--tx-2)" }}>Sign in to your GoldPredict account</p>
         </div>
 
-        {/* Google */}
-        <button onClick={handleGoogle} disabled={googleLoading}
-          className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-white/[0.1] bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/[0.2] transition-all mb-5 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed">
-          {googleLoading
-            ? <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
-            : <GoogleIcon />}
-          {googleLoading ? "Signing in…" : "Continue with Google"}
+        {/* Google button */}
+        <button
+          onClick={handleGoogle}
+          disabled={googleLoading}
+          style={{
+            width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+            padding: "12px 16px", borderRadius: 12,
+            border: "1px solid rgba(255,255,255,0.1)",
+            background: "rgba(255,255,255,0.03)",
+            cursor: googleLoading ? "not-allowed" : "pointer",
+            opacity: googleLoading ? 0.6 : 1,
+            fontFamily: "DM Sans", fontSize: 14, fontWeight: 500, color: "var(--tx-0)",
+            transition: "all 0.15s ease",
+            marginBottom: 20,
+          }}
+          onMouseEnter={e => { if (!googleLoading) { e.currentTarget.style.background = "rgba(255,255,255,0.07)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.18)"; } }}
+          onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.03)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; }}
+        >
+          {googleLoading ? <Spinner /> : <GoogleIcon />}
+          {googleLoading ? "Connecting…" : "Continue with Google"}
         </button>
 
-        <div className="flex items-center gap-3 mb-5">
-          <div className="flex-1 h-px bg-white/[0.06]" />
-          <span className="text-xs text-[#62626f] font-mono">OR</span>
-          <div className="flex-1 h-px bg-white/[0.06]" />
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+          <div style={{ flex: 1, height: 1, background: "var(--bdr-1)" }} />
+          <span style={{ fontFamily: "DM Mono", fontSize: 10, color: "var(--tx-3)" }}>OR</span>
+          <div style={{ flex: 1, height: 1, background: "var(--bdr-1)" }} />
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <div>
             <label className="label">Email Address</label>
             <input type="email" className="input" placeholder="you@example.com"
@@ -107,34 +138,33 @@ function LoginForm() {
           </div>
           <div>
             <label className="label">Password</label>
-            <div className="relative">
-              <input type={showPass ? "text" : "password"} className="input pr-12" placeholder="••••••••"
+            <div style={{ position: "relative" }}>
+              <input type={showPass ? "text" : "password"} className="input" placeholder="••••••••"
+                style={{ paddingRight: 52 }}
                 value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
                 required autoComplete="current-password" />
               <button type="button" onClick={() => setShowPass(p => !p)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#62626f] hover:text-white text-xs font-mono transition-colors">
+                style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", fontFamily: "DM Mono", fontSize: 10, color: "var(--tx-3)", letterSpacing: "0.05em" }}>
                 {showPass ? "HIDE" : "SHOW"}
               </button>
             </div>
           </div>
-          <div className="flex justify-end">
-            <Link href="/auth/forgot-password" className="text-xs text-amber-400 hover:text-amber-300 transition-colors">
+
+          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+            <Link href="/auth/forgot-password" style={{ fontFamily: "DM Sans", fontSize: 12, color: "#f59e0b", textDecoration: "none" }}>
               Forgot password?
             </Link>
           </div>
-          <button type="submit" disabled={loading} className="btn btn-primary w-full justify-center">
-            {loading
-              ? <span className="flex items-center gap-2"><svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>Signing in…</span>
-              : "Sign In"}
+
+          <button type="submit" disabled={loading} className="btn btn-primary" style={{ width: "100%", justifyContent: "center" }}>
+            {loading ? <><Spinner /> Signing in…</> : "Sign In"}
           </button>
         </form>
 
-        <div className="mt-6 pt-6 border-t border-white/[0.06] text-center">
-          <p className="text-sm text-[#62626f]">
+        <div style={{ marginTop: 24, paddingTop: 20, borderTop: "1px solid var(--bdr-1)", textAlign: "center" }}>
+          <p style={{ fontFamily: "DM Sans", fontSize: 13, color: "var(--tx-2)" }}>
             Don&apos;t have an account?{" "}
-            <Link href="/auth/register" className="text-amber-400 hover:text-amber-300 font-semibold transition-colors">
-              Sign up free
-            </Link>
+            <Link href="/auth/register" style={{ color: "#f59e0b", fontWeight: 600, textDecoration: "none" }}>Sign up free</Link>
           </p>
         </div>
       </div>
@@ -144,7 +174,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="w-full max-w-md card p-8 shimmer h-96" />}>
+    <Suspense fallback={<div style={{ width: 420, height: 480 }} className="skeleton" />}>
       <LoginForm />
     </Suspense>
   );

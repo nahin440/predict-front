@@ -1,24 +1,28 @@
+// Pure server component — no Firebase, no client imports
 import Link from "next/link";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-[#0a0a0d] bg-grid flex flex-col">
+    <div style={{ minHeight: "100dvh", background: "var(--bg-0)", display: "flex", flexDirection: "column" }} className="bg-grid">
       {/* Header */}
-      <header className="p-6 flex justify-between items-center max-w-7xl mx-auto w-full">
-        <Link href="/" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center">
-            <span className="text-black font-black text-sm font-mono">Au</span>
+      <header style={{ padding: "20px 24px", display: "flex", justifyContent: "space-between", alignItems: "center", maxWidth: 1280, margin: "0 auto", width: "100%" }}>
+        <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
+          <div style={{ width: 32, height: 32, borderRadius: 10, background: "linear-gradient(135deg,#fbbf24,#d97706)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <span style={{ fontFamily: "DM Mono", fontWeight: 700, fontSize: 12, color: "#0a0800" }}>Au</span>
           </div>
-          <span className="font-bold text-lg">Gold<span className="text-amber-400">Predict</span></span>
+          <span style={{ fontFamily: "Syne", fontWeight: 800, fontSize: 17, color: "var(--tx-0)", letterSpacing: "-0.03em" }}>
+            Gold<span style={{ color: "#f59e0b" }}>Predict</span>
+          </span>
         </Link>
-        <Link href="/" className="text-sm text-[#a0a0ab] hover:text-white transition-colors">← Home</Link>
+        <Link href="/" style={{ fontFamily: "DM Sans", fontSize: 13, color: "var(--tx-2)", textDecoration: "none" }}>
+          ← Home
+        </Link>
       </header>
 
       {/* Ambient glow */}
-      <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full opacity-[0.04] blur-[120px] pointer-events-none"
-        style={{ background: "radial-gradient(circle, #f59e0b, transparent 70%)" }} />
+      <div style={{ position: "fixed", top: "30%", left: "50%", transform: "translateX(-50%)", width: 600, height: 400, borderRadius: "50%", background: "radial-gradient(ellipse, rgba(245,158,11,0.06) 0%, transparent 70%)", pointerEvents: "none", filter: "blur(60px)" }} />
 
-      <main className="flex-1 flex items-center justify-center px-4 py-12 relative">
+      <main style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "32px 24px", position: "relative" }}>
         {children}
       </main>
     </div>

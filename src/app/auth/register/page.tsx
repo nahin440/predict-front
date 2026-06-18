@@ -3,7 +3,6 @@ import { useState } from "react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { useAuth } from "@/lib/auth/AuthContext";
-import { auth, googleProvider, signInWithPopup } from "@/lib/firebase/client";
 
 function GoogleIcon() {
   return (
@@ -16,9 +15,19 @@ function GoogleIcon() {
   );
 }
 
+function Spinner() {
+  return (
+    <svg style={{ width: 16, height: 16, animation: "spin 0.8s linear infinite", flexShrink: 0 }} fill="none" viewBox="0 0 24 24">
+      <circle style={{ opacity: 0.25 }} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+      <path style={{ opacity: 0.75 }} fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </svg>
+  );
+}
+
 export default function RegisterPage() {
   const { login } = useAuth();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading]             = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", password: "", confirm: "" });
 
@@ -29,13 +38,13 @@ export default function RegisterPage() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (form.password !== form.confirm) return toast.error("Passwords do not match");
-    if (form.password.length < 8) return toast.error("Password must be at least 8 characters");
+    if (form.password.length < 8)       return toast.error("Password must be at least 8 characters");
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/register", {
+      const res  = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: form.name, email: form.email, password: form.password })
+        body: JSON.stringify({ name: form.name, email: form.email, password: form.password }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Registration failed");
@@ -51,12 +60,15 @@ export default function RegisterPage() {
   async function handleGoogle() {
     setGoogleLoading(true);
     try {
-      const result = await signInWithPopup(auth, googleProvider);
-      const fb = result.user;
-      const res = await fetch("/api/auth/google", {
+      // Dynamic import — Firebase never runs on SSR/prerender
+      const { signInWithGoogle } = await import("@/lib/firebase/client");
+      const result = await signInWithGoogle();
+      const fb     = result.user;
+
+      const res  = await fetch("/api/auth/google", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ uid: fb.uid, email: fb.email, name: fb.displayName, photoURL: fb.photoURL })
+        body: JSON.stringify({ uid: fb.uid, email: fb.email, name: fb.displayName, photoURL: fb.photoURL }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Google sign-up failed");
@@ -71,38 +83,55 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="w-full max-w-md animate-slide-up">
-      <div className="card p-8">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-black tracking-tight mb-2">Create Account</h1>
-          <p className="text-sm text-[#62626f]">Start free. Upgrade anytime.</p>
+    <div style={{ width: "100%", maxWidth: 420, animation: "fadeUp 0.4s ease both" }}>
+      <style>{`@keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }`}</style>
+
+      <div className="card" style={{ padding: 36 }}>
+        <div style={{ textAlign: "center", marginBottom: 28 }}>
+          <h1 style={{ fontFamily: "Syne", fontSize: 26, fontWeight: 800, letterSpacing: "-0.03em", marginBottom: 6 }}>Create Account</h1>
+          <p style={{ fontFamily: "DM Sans", fontSize: 13, color: "var(--tx-2)" }}>Start free. No credit card required.</p>
         </div>
 
         {/* Google */}
-        <button onClick={handleGoogle} disabled={googleLoading}
-          className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-xl border border-white/[0.1] bg-white/[0.03] hover:bg-white/[0.06] hover:border-white/[0.2] transition-all mb-5 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed">
-          {googleLoading
-            ? <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>
-            : <GoogleIcon />}
+        <button
+          onClick={handleGoogle}
+          disabled={googleLoading}
+          style={{
+            width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+            padding: "12px 16px", borderRadius: 12,
+            border: "1px solid rgba(255,255,255,0.1)",
+            background: "rgba(255,255,255,0.03)",
+            cursor: googleLoading ? "not-allowed" : "pointer",
+            opacity: googleLoading ? 0.6 : 1,
+            fontFamily: "DM Sans", fontSize: 14, fontWeight: 500, color: "var(--tx-0)",
+            transition: "all 0.15s ease",
+            marginBottom: 20,
+          }}
+          onMouseEnter={e => { if (!googleLoading) { e.currentTarget.style.background = "rgba(255,255,255,0.07)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.18)"; } }}
+          onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.03)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; }}
+        >
+          {googleLoading ? <Spinner /> : <GoogleIcon />}
           {googleLoading ? "Connecting…" : "Sign up with Google"}
         </button>
 
-        <div className="flex items-center gap-3 mb-5">
-          <div className="flex-1 h-px bg-white/[0.06]" />
-          <span className="text-xs text-[#62626f] font-mono">OR</span>
-          <div className="flex-1 h-px bg-white/[0.06]" />
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
+          <div style={{ flex: 1, height: 1, background: "var(--bdr-1)" }} />
+          <span style={{ fontFamily: "DM Mono", fontSize: 10, color: "var(--tx-3)" }}>OR</span>
+          <div style={{ flex: 1, height: 1, background: "var(--bdr-1)" }} />
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <div>
             <label className="label">Full Name</label>
-            <input type="text" className="input" placeholder="Your name" value={form.name}
-              onChange={e => setForm(p => ({ ...p, name: e.target.value }))} required minLength={2} autoComplete="name" />
+            <input type="text" className="input" placeholder="Your name"
+              value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
+              required minLength={2} autoComplete="name" />
           </div>
           <div>
             <label className="label">Email Address</label>
-            <input type="email" className="input" placeholder="you@example.com" value={form.email}
-              onChange={e => setForm(p => ({ ...p, email: e.target.value }))} required autoComplete="email" />
+            <input type="email" className="input" placeholder="you@example.com"
+              value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
+              required autoComplete="email" />
           </div>
           <div>
             <label className="label">Password</label>
@@ -112,25 +141,26 @@ export default function RegisterPage() {
           </div>
           <div>
             <label className="label">Confirm Password</label>
-            <input type="password" className="input" placeholder="Repeat password" value={form.confirm}
-              onChange={e => setForm(p => ({ ...p, confirm: e.target.value }))} required autoComplete="new-password" />
+            <input type="password" className="input" placeholder="Repeat password"
+              value={form.confirm} onChange={e => setForm(p => ({ ...p, confirm: e.target.value }))}
+              required autoComplete="new-password" />
           </div>
-          <button type="submit" disabled={loading} className="btn btn-primary w-full justify-center mt-2">
-            {loading
-              ? <span className="flex items-center gap-2"><svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/></svg>Creating…</span>
-              : "Create Account"}
+
+          <button type="submit" disabled={loading} className="btn btn-primary" style={{ width: "100%", justifyContent: "center", marginTop: 4 }}>
+            {loading ? <><Spinner /> Creating…</> : "Create Account"}
           </button>
         </form>
 
-        <p className="text-xs text-[#62626f] text-center mt-4">
+        <p style={{ fontFamily: "DM Sans", fontSize: 11, color: "var(--tx-3)", textAlign: "center", marginTop: 14, lineHeight: 1.5 }}>
           By registering you agree to our{" "}
-          <Link href="/terms" className="text-amber-400/70 hover:text-amber-400">Terms</Link> and{" "}
-          <Link href="/privacy-policy" className="text-amber-400/70 hover:text-amber-400">Privacy Policy</Link>.
+          <Link href="/terms" style={{ color: "#f59e0b", textDecoration: "none" }}>Terms</Link> and{" "}
+          <Link href="/privacy-policy" style={{ color: "#f59e0b", textDecoration: "none" }}>Privacy Policy</Link>
         </p>
-        <div className="mt-6 pt-6 border-t border-white/[0.06] text-center">
-          <p className="text-sm text-[#62626f]">
+
+        <div style={{ marginTop: 20, paddingTop: 18, borderTop: "1px solid var(--bdr-1)", textAlign: "center" }}>
+          <p style={{ fontFamily: "DM Sans", fontSize: 13, color: "var(--tx-2)" }}>
             Already have an account?{" "}
-            <Link href="/auth/login" className="text-amber-400 hover:text-amber-300 font-semibold transition-colors">Sign in</Link>
+            <Link href="/auth/login" style={{ color: "#f59e0b", fontWeight: 600, textDecoration: "none" }}>Sign in</Link>
           </p>
         </div>
       </div>
