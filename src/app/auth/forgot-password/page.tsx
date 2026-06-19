@@ -12,7 +12,6 @@ export default function ForgotPasswordPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      // In production, call /api/auth/forgot-password
       await new Promise(r => setTimeout(r, 1000));
       setSent(true);
       toast.success("Reset link sent if email exists");
@@ -24,39 +23,39 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="w-full max-w-md animate-slide-up">
-      <div className="card p-8">
+    <div style={{ width: "100%", maxWidth: 420, animation: "fadeUp 0.4s ease both" }}>
+      <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}`}</style>
+      <div className="card" style={{ padding: 36 }}>
         {sent ? (
-          <div className="text-center">
-            <div className="w-16 h-16 rounded-full bg-emerald-400/10 border border-emerald-400/20 flex items-center justify-center mx-auto mb-4">
-              <span className="text-2xl">✉️</span>
-            </div>
-            <h2 className="text-xl font-bold mb-2">Check Your Email</h2>
-            <p className="text-sm text-[#a0a0ab] mb-6">
-              If an account exists for <strong className="text-white">{email}</strong>, a reset link has been sent.
+          <div style={{ textAlign: "center" }}>
+            <div style={{ width:64, height:64, borderRadius:"50%", background:"rgba(0,230,118,0.1)", border:"1px solid rgba(0,230,118,0.2)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 20px", fontSize:28 }}>✉️</div>
+            <h2 style={{ fontFamily:"Syne", fontSize:22, fontWeight:800, letterSpacing:"-0.03em", marginBottom:10 }}>Check Your Email</h2>
+            <p style={{ fontFamily:"Space Grotesk", fontSize:13, color:"var(--fog)", lineHeight:1.6, marginBottom:24 }}>
+              If an account exists for <strong style={{ color:"var(--paper)" }}>{email}</strong>, a reset link has been sent.
             </p>
-            <Link href="/auth/login" className="btn btn-secondary w-full justify-center">
+            <Link href="/auth/login" className="btn btn-secondary" style={{ textDecoration:"none", width:"100%", justifyContent:"center" }}>
               Back to Sign In
             </Link>
           </div>
         ) : (
           <>
-            <div className="text-center mb-8">
-              <h1 className="text-2xl font-black tracking-tight mb-2">Reset Password</h1>
-              <p className="text-sm text-[#62626f]">Enter your email to receive a reset link.</p>
+            <div style={{ textAlign:"center", marginBottom:28 }}>
+              <h1 style={{ fontFamily:"Syne", fontSize:26, fontWeight:800, letterSpacing:"-0.03em", marginBottom:6 }}>Reset Password</h1>
+              <p style={{ fontFamily:"Space Grotesk", fontSize:13, color:"var(--fog)" }}>Enter your email to receive a reset link.</p>
             </div>
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} style={{ display:"flex", flexDirection:"column", gap:16 }}>
               <div>
                 <label className="label">Email Address</label>
                 <input type="email" className="input" placeholder="you@example.com"
-                  value={email} onChange={e => setEmail(e.target.value)} required />
+                  value={email} onChange={e => setEmail(e.target.value)}
+                  required autoComplete="email" />
               </div>
-              <button type="submit" disabled={loading} className="btn btn-primary w-full justify-center">
+              <button type="submit" disabled={loading} className="btn btn-primary" style={{ width:"100%", justifyContent:"center" }}>
                 {loading ? "Sending…" : "Send Reset Link"}
               </button>
             </form>
-            <div className="mt-6 text-center">
-              <Link href="/auth/login" className="text-sm text-[#62626f] hover:text-white transition-colors">
+            <div style={{ marginTop:20, textAlign:"center" }}>
+              <Link href="/auth/login" style={{ fontFamily:"Space Grotesk", fontSize:13, color:"var(--slate)", textDecoration:"none" }}>
                 ← Back to Sign In
               </Link>
             </div>

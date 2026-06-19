@@ -8,7 +8,7 @@ import FeaturesSection from "@/components/sections/FeaturesSection";
 import HowItWorks from "@/components/sections/HowItWorks";
 import PricingSection from "@/components/sections/PricingSection";
 import { FAQSection } from "@/components/sections/FAQSection";
-import { CTASection } from "@/components/sections/CTASection";
+import CTASection from "@/components/sections/CTASection";
 import connectDB from "@/lib/db/mongoose";
 import Prediction from "@/models/Prediction";
 
