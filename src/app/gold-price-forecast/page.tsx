@@ -11,17 +11,17 @@ export const metadata: Metadata = {
 
 export default function GoldPriceForecastPage() {
   return (
-    <main style={{ background: "var(--bg-0)", minHeight: "100dvh" }}>
+    <main style={{ background: "var(--ink)", minHeight: "100dvh" }}>
       <Navbar />
       <div style={{ paddingTop: 120, paddingBottom: 96 }} className="bg-grid">
         <div style={{ maxWidth: 900, margin: "0 auto", padding: "0 24px" }}>
           <div style={{ textAlign: "center", marginBottom: 56 }}>
             <div className="section-tag" style={{ display: "inline-flex", marginBottom: 20 }}>AI-Powered Analysis</div>
-            <h1 style={{ fontFamily: "Syne", fontSize: "clamp(32px,4vw,56px)", fontWeight: 800, letterSpacing: "-0.04em", marginBottom: 20 }}>
+            <h1 style={{ fontFamily: "var(--font-syne)", fontSize: "clamp(32px,4vw,56px)", fontWeight: 800, letterSpacing: "-0.04em", marginBottom: 20 }}>
               Gold Price Forecast<br />
               <span className="text-gradient-gold">XAUUSD 2026</span>
             </h1>
-            <p style={{ fontFamily: "DM Sans", fontSize: 17, color: "var(--tx-1)", lineHeight: 1.7, maxWidth: 580, margin: "0 auto 32px" }}>
+            <p style={{ fontFamily: "var(--font-space-grotesk)", fontSize: 17, color: "var(--ash)", lineHeight: 1.7, maxWidth: 580, margin: "0 auto 32px" }}>
               Our AI analyzes multi-timeframe structure, macro correlations, and 15+ technical patterns to generate probabilistic XAUUSD forecasts — refreshed every 15 minutes.
             </p>
             <Link href="/predictions" className="btn btn-primary btn-lg" style={{ textDecoration: "none" }}>
@@ -49,8 +49,8 @@ export default function GoldPriceForecastPage() {
               }
             ].map(s => (
               <div key={s.title} className="card" style={{ padding: "28px 32px" }}>
-                <h2 style={{ fontFamily: "Syne", fontSize: 18, fontWeight: 700, marginBottom: 12, color: "#f59e0b" }}>{s.title}</h2>
-                <p style={{ fontFamily: "DM Sans", fontSize: 14, color: "var(--tx-2)", lineHeight: 1.8 }}>{s.content}</p>
+                <h2 style={{ fontFamily: "var(--font-syne)", fontSize: 18, fontWeight: 700, marginBottom: 12, color: "#f59e0b" }}>{s.title}</h2>
+                <p style={{ fontFamily: "var(--font-space-grotesk)", fontSize: 14, color: "var(--fog)", lineHeight: 1.8 }}>{s.content}</p>
               </div>
             ))}
           </div>

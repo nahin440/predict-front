@@ -16,18 +16,18 @@ const SECTIONS = [
 
 export default function PrivacyPage() {
   return (
-    <main style={{ background: "var(--bg-0)", minHeight: "100dvh" }}>
+    <main style={{ background: "var(--ink)", minHeight: "100dvh" }}>
       <Navbar />
       <div style={{ paddingTop: 120, paddingBottom: 96 }}>
         <div style={{ maxWidth: 720, margin: "0 auto", padding: "0 24px" }}>
-          <h1 style={{ fontFamily: "Syne", fontSize: 36, fontWeight: 800, letterSpacing: "-0.03em", marginBottom: 8 }}>Privacy Policy</h1>
-          <p style={{ fontFamily: "DM Mono", fontSize: 11, color: "var(--tx-3)", marginBottom: 40 }}>Last updated: June 2026</p>
+          <h1 style={{ fontFamily: "var(--font-syne)", fontSize: 36, fontWeight: 800, letterSpacing: "-0.03em", marginBottom: 8 }}>Privacy Policy</h1>
+          <p style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 11, color: "var(--slate)", marginBottom: 40 }}>Last updated: June 2026</p>
           <div className="card" style={{ padding: "32px 36px" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
               {SECTIONS.map(s => (
-                <div key={s.title} style={{ paddingBottom: 28, borderBottom: "1px solid var(--bdr-0)" }}>
-                  <h2 style={{ fontFamily: "Syne", fontSize: 15, fontWeight: 700, marginBottom: 10, color: "var(--tx-0)" }}>{s.title}</h2>
-                  <p style={{ fontFamily: "DM Sans", fontSize: 14, color: "var(--tx-2)", lineHeight: 1.8 }}>{s.content}</p>
+                <div key={s.title} style={{ paddingBottom: 28, borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                  <h2 style={{ fontFamily: "var(--font-syne)", fontSize: 15, fontWeight: 700, marginBottom: 10, color: "var(--paper)" }}>{s.title}</h2>
+                  <p style={{ fontFamily: "var(--font-space-grotesk)", fontSize: 14, color: "var(--fog)", lineHeight: 1.8 }}>{s.content}</p>
                 </div>
               ))}
             </div>

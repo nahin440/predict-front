@@ -29,9 +29,9 @@ function StepCard({ step, index, isRight }: { step: typeof STEPS[0]; index: numb
           <div className="card" style={{ padding:0, overflow:"hidden" }}>
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr" }} className="step-inner">
               <div style={{ padding:"20px 20px 20px" }}>
-                <div style={{ fontFamily:"JetBrains Mono",fontSize:9,color:step.color,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:6 }}>Layer {step.n}</div>
-                <h3 style={{ fontFamily:"Syne",fontSize:14,fontWeight:700,marginBottom:8,letterSpacing:"-0.02em" }}>{step.title}</h3>
-                <p style={{ fontFamily:"Space Grotesk",fontSize:12,color:"var(--slate)",lineHeight:1.6 }}>{step.desc}</p>
+                <div style={{ fontFamily:"var(--font-jetbrains-mono)",fontSize:9,color:step.color,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:6 }}>Layer {step.n}</div>
+                <h3 style={{ fontFamily:"var(--font-syne)",fontSize:14,fontWeight:700,marginBottom:8,letterSpacing:"-0.02em" }}>{step.title}</h3>
+                <p style={{ fontFamily:"var(--font-space-grotesk)",fontSize:12,color:"var(--slate)",lineHeight:1.6 }}>{step.desc}</p>
               </div>
               <div style={{ backgroundImage:`url(${step.img})`, backgroundSize:"cover", backgroundPosition:"center", minHeight:140, filter:"grayscale(50%) brightness(0.3)" }} className="step-img" />
             </div>
@@ -47,9 +47,9 @@ function StepCard({ step, index, isRight }: { step: typeof STEPS[0]; index: numb
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr" }} className="step-inner">
               <div style={{ backgroundImage:`url(${step.img})`, backgroundSize:"cover", backgroundPosition:"center", minHeight:140, filter:"grayscale(50%) brightness(0.3)" }} className="step-img" />
               <div style={{ padding:"20px 20px 20px" }}>
-                <div style={{ fontFamily:"JetBrains Mono",fontSize:9,color:step.color,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:6 }}>Layer {step.n}</div>
-                <h3 style={{ fontFamily:"Syne",fontSize:14,fontWeight:700,marginBottom:8,letterSpacing:"-0.02em" }}>{step.title}</h3>
-                <p style={{ fontFamily:"Space Grotesk",fontSize:12,color:"var(--slate)",lineHeight:1.6 }}>{step.desc}</p>
+                <div style={{ fontFamily:"var(--font-jetbrains-mono)",fontSize:9,color:step.color,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:6 }}>Layer {step.n}</div>
+                <h3 style={{ fontFamily:"var(--font-syne)",fontSize:14,fontWeight:700,marginBottom:8,letterSpacing:"-0.02em" }}>{step.title}</h3>
+                <p style={{ fontFamily:"var(--font-space-grotesk)",fontSize:12,color:"var(--slate)",lineHeight:1.6 }}>{step.desc}</p>
               </div>
             </div>
           </div>
@@ -65,11 +65,11 @@ export default function HowItWorks() {
       <div style={{ maxWidth:1100, margin:"0 auto", padding:"0 24px" }}>
         <div style={{ textAlign:"center", marginBottom:64 }}>
           <div className="section-tag" style={{ display:"inline-flex", marginBottom:16 }}>Signal Architecture</div>
-          <h2 style={{ fontFamily:"Syne", fontSize:"clamp(28px,3.5vw,48px)", fontWeight:800, letterSpacing:"-0.04em", marginBottom:14 }}>
+          <h2 style={{ fontFamily:"var(--font-syne)", fontSize:"clamp(28px,3.5vw,48px)", fontWeight:800, letterSpacing:"-0.04em", marginBottom:14 }}>
             <span style={{ color:"var(--paper)" }}>The 5-Layer</span><br />
             <span className="text-gradient-gold">Decision Waterfall</span>
           </h2>
-          <p style={{ fontFamily:"Space Grotesk", fontSize:15, color:"var(--fog)", maxWidth:440, margin:"0 auto" }}>
+          <p style={{ fontFamily:"var(--font-space-grotesk)", fontSize:15, color:"var(--fog)", maxWidth:440, margin:"0 auto" }}>
             Every signal passes five consecutive gates. Fail any one — the trade is skipped.
           </p>
         </div>

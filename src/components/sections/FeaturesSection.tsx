@@ -49,8 +49,8 @@ function FeatureCard({ f, index }: { f: typeof FEATURES[0]; index: number }) {
       </div>
       {/* Content */}
       <div style={{ padding: "16px 20px 20px" }}>
-        <h3 style={{ fontFamily: "Syne", fontSize: 14, fontWeight: 700, marginBottom: 7, color: hovered ? "var(--gold-bright)" : "var(--paper)", transition: "color 0.2s ease" }}>{f.title}</h3>
-        <p style={{ fontFamily: "Space Grotesk", fontSize: 12, color: "var(--slate)", lineHeight: 1.6 }}>{f.desc}</p>
+        <h3 style={{ fontFamily: "var(--font-syne)", fontSize: 14, fontWeight: 700, marginBottom: 7, color: hovered ? "var(--gold-bright)" : "var(--paper)", transition: "color 0.2s ease" }}>{f.title}</h3>
+        <p style={{ fontFamily: "var(--font-space-grotesk)", fontSize: 12, color: "var(--slate)", lineHeight: 1.6 }}>{f.desc}</p>
       </div>
     </div>
   );
@@ -62,11 +62,11 @@ export default function FeaturesSection() {
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
         <div style={{ textAlign: "center", marginBottom: 64 }}>
           <div className="section-tag animate-fade-up d0" style={{ display: "inline-flex", marginBottom: 18 }}>Intelligence Stack</div>
-          <h2 className="animate-fade-up d1" style={{ fontFamily: "Syne", fontSize: "clamp(28px,3.5vw,48px)", fontWeight: 800, letterSpacing: "-0.04em", marginBottom: 16, lineHeight: 1.0 }}>
+          <h2 className="animate-fade-up d1" style={{ fontFamily: "var(--font-syne)", fontSize: "clamp(28px,3.5vw,48px)", fontWeight: 800, letterSpacing: "-0.04em", marginBottom: 16, lineHeight: 1.0 }}>
             <span style={{ color: "var(--paper)" }}>Institutional Tech.</span><br />
             <span className="text-gradient-gold">Accessible Price.</span>
           </h2>
-          <p className="animate-fade-up d2" style={{ fontFamily: "Space Grotesk", fontSize: 16, color: "var(--fog)", maxWidth: 500, margin: "0 auto" }}>
+          <p className="animate-fade-up d2" style={{ fontFamily: "var(--font-space-grotesk)", fontSize: 16, color: "var(--fog)", maxWidth: 500, margin: "0 auto" }}>
             Nine intelligence layers distilled into one signal — every 15 minutes.
           </p>
         </div>

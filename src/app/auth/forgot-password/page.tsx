@@ -29,8 +29,8 @@ export default function ForgotPasswordPage() {
         {sent ? (
           <div style={{ textAlign: "center" }}>
             <div style={{ width:64, height:64, borderRadius:"50%", background:"rgba(0,230,118,0.1)", border:"1px solid rgba(0,230,118,0.2)", display:"flex", alignItems:"center", justifyContent:"center", margin:"0 auto 20px", fontSize:28 }}>✉️</div>
-            <h2 style={{ fontFamily:"Syne", fontSize:22, fontWeight:800, letterSpacing:"-0.03em", marginBottom:10 }}>Check Your Email</h2>
-            <p style={{ fontFamily:"Space Grotesk", fontSize:13, color:"var(--fog)", lineHeight:1.6, marginBottom:24 }}>
+            <h2 style={{ fontFamily:"var(--font-syne)", fontSize:22, fontWeight:800, letterSpacing:"-0.03em", marginBottom:10 }}>Check Your Email</h2>
+            <p style={{ fontFamily:"var(--font-space-grotesk)", fontSize:13, color:"var(--fog)", lineHeight:1.6, marginBottom:24 }}>
               If an account exists for <strong style={{ color:"var(--paper)" }}>{email}</strong>, a reset link has been sent.
             </p>
             <Link href="/auth/login" className="btn btn-secondary" style={{ textDecoration:"none", width:"100%", justifyContent:"center" }}>
@@ -40,8 +40,8 @@ export default function ForgotPasswordPage() {
         ) : (
           <>
             <div style={{ textAlign:"center", marginBottom:28 }}>
-              <h1 style={{ fontFamily:"Syne", fontSize:26, fontWeight:800, letterSpacing:"-0.03em", marginBottom:6 }}>Reset Password</h1>
-              <p style={{ fontFamily:"Space Grotesk", fontSize:13, color:"var(--fog)" }}>Enter your email to receive a reset link.</p>
+              <h1 style={{ fontFamily:"var(--font-syne)", fontSize:26, fontWeight:800, letterSpacing:"-0.03em", marginBottom:6 }}>Reset Password</h1>
+              <p style={{ fontFamily:"var(--font-space-grotesk)", fontSize:13, color:"var(--fog)" }}>Enter your email to receive a reset link.</p>
             </div>
             <form onSubmit={handleSubmit} style={{ display:"flex", flexDirection:"column", gap:16 }}>
               <div>
@@ -55,7 +55,7 @@ export default function ForgotPasswordPage() {
               </button>
             </form>
             <div style={{ marginTop:20, textAlign:"center" }}>
-              <Link href="/auth/login" style={{ fontFamily:"Space Grotesk", fontSize:13, color:"var(--slate)", textDecoration:"none" }}>
+              <Link href="/auth/login" style={{ fontFamily:"var(--font-space-grotesk)", fontSize:13, color:"var(--slate)", textDecoration:"none" }}>
                 ← Back to Sign In
               </Link>
             </div>

@@ -97,8 +97,8 @@ function LoginForm() {
 
       <div className="card" style={{ padding: 36 }}>
         <div style={{ textAlign: "center", marginBottom: 28 }}>
-          <h1 style={{ fontFamily: "Syne", fontSize: 26, fontWeight: 800, letterSpacing: "-0.03em", marginBottom: 6 }}>Welcome Back</h1>
-          <p style={{ fontFamily: "DM Sans", fontSize: 13, color: "var(--tx-2)" }}>Sign in to your GoldPredict account</p>
+          <h1 style={{ fontFamily: "var(--font-syne)", fontSize: 26, fontWeight: 800, letterSpacing: "-0.03em", marginBottom: 6 }}>Welcome Back</h1>
+          <p style={{ fontFamily: "var(--font-space-grotesk)", fontSize: 13, color: "var(--fog)" }}>Sign in to your GoldPredict account</p>
         </div>
 
         {/* Google button */}
@@ -112,7 +112,7 @@ function LoginForm() {
             background: "rgba(255,255,255,0.03)",
             cursor: googleLoading ? "not-allowed" : "pointer",
             opacity: googleLoading ? 0.6 : 1,
-            fontFamily: "DM Sans", fontSize: 14, fontWeight: 500, color: "var(--tx-0)",
+            fontFamily: "var(--font-space-grotesk)", fontSize: 14, fontWeight: 500, color: "var(--paper)",
             transition: "all 0.15s ease",
             marginBottom: 20,
           }}
@@ -124,9 +124,9 @@ function LoginForm() {
         </button>
 
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-          <div style={{ flex: 1, height: 1, background: "var(--bdr-1)" }} />
-          <span style={{ fontFamily: "DM Mono", fontSize: 10, color: "var(--tx-3)" }}>OR</span>
-          <div style={{ flex: 1, height: 1, background: "var(--bdr-1)" }} />
+          <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.07)" }} />
+          <span style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 10, color: "var(--slate)" }}>OR</span>
+          <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.07)" }} />
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -144,14 +144,14 @@ function LoginForm() {
                 value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
                 required autoComplete="current-password" />
               <button type="button" onClick={() => setShowPass(p => !p)}
-                style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", fontFamily: "DM Mono", fontSize: 10, color: "var(--tx-3)", letterSpacing: "0.05em" }}>
+                style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", fontFamily: "var(--font-jetbrains-mono)", fontSize: 10, color: "var(--slate)", letterSpacing: "0.05em" }}>
                 {showPass ? "HIDE" : "SHOW"}
               </button>
             </div>
           </div>
 
           <div style={{ display: "flex", justifyContent: "flex-end" }}>
-            <Link href="/auth/forgot-password" style={{ fontFamily: "DM Sans", fontSize: 12, color: "#f59e0b", textDecoration: "none" }}>
+            <Link href="/auth/forgot-password" style={{ fontFamily: "var(--font-space-grotesk)", fontSize: 12, color: "#f59e0b", textDecoration: "none" }}>
               Forgot password?
             </Link>
           </div>
@@ -161,8 +161,8 @@ function LoginForm() {
           </button>
         </form>
 
-        <div style={{ marginTop: 24, paddingTop: 20, borderTop: "1px solid var(--bdr-1)", textAlign: "center" }}>
-          <p style={{ fontFamily: "DM Sans", fontSize: 13, color: "var(--tx-2)" }}>
+        <div style={{ marginTop: 24, paddingTop: 20, borderTop: "1px solid rgba(255,255,255,0.07)", textAlign: "center" }}>
+          <p style={{ fontFamily: "var(--font-space-grotesk)", fontSize: 13, color: "var(--fog)" }}>
             Don&apos;t have an account?{" "}
             <Link href="/auth/register" style={{ color: "#f59e0b", fontWeight: 600, textDecoration: "none" }}>Sign up free</Link>
           </p>

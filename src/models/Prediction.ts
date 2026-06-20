@@ -3,7 +3,7 @@ import mongoose, { Schema, Model } from "mongoose";
 const PredictionSchema = new Schema(
   {
     server_time: String,
-    timestamp: { type: Date, index: true },
+    timestamp: { type: Date },
     target_time: Date,
     saved_at: { type: Date, default: Date.now },
     current_price: { type: Number, required: true },

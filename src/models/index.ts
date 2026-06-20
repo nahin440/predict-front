@@ -77,7 +77,7 @@ const BlogPostSchema = new Schema<IBlogPostDoc>(
   { timestamps: true }
 );
 
-BlogPostSchema.index({ slug: 1 });
+// slug index already created via unique:true above
 BlogPostSchema.index({ status: 1, publishedAt: -1 });
 
 export const BlogPost: Model<IBlogPostDoc> =

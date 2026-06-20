@@ -12,15 +12,15 @@ export const metadata: Metadata = {
 
 export default function PricingPage() {
   return (
-    <main style={{ background: "var(--bg-0)", minHeight: "100dvh" }}>
+    <main style={{ background: "var(--ink)", minHeight: "100dvh" }}>
       <Navbar />
       <div style={{ paddingTop: 80 }}>
         <div style={{ maxWidth: 1280, margin: "0 auto", padding: "64px 24px 0", textAlign: "center" }}>
           <div className="section-tag" style={{ display: "inline-flex", marginBottom: 20 }}>Simple Pricing</div>
-          <h1 style={{ fontFamily: "Syne", fontSize: "clamp(32px,4vw,52px)", fontWeight: 800, letterSpacing: "-0.04em", marginBottom: 16 }}>
+          <h1 style={{ fontFamily: "var(--font-syne)", fontSize: "clamp(32px,4vw,52px)", fontWeight: 800, letterSpacing: "-0.04em", marginBottom: 16 }}>
             Transparent Plans.<br />No Hidden Fees.
           </h1>
-          <p style={{ fontFamily: "DM Sans", fontSize: 16, color: "var(--tx-2)", maxWidth: 520, margin: "0 auto" }}>
+          <p style={{ fontFamily: "var(--font-space-grotesk)", fontSize: 16, color: "var(--fog)", maxWidth: 520, margin: "0 auto" }}>
             Free tier shows direction only — upgrade when you need the data that actually lets you trade it.
           </p>
         </div>

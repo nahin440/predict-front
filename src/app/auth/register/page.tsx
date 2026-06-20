@@ -88,8 +88,8 @@ export default function RegisterPage() {
 
       <div className="card" style={{ padding: 36 }}>
         <div style={{ textAlign: "center", marginBottom: 28 }}>
-          <h1 style={{ fontFamily: "Syne", fontSize: 26, fontWeight: 800, letterSpacing: "-0.03em", marginBottom: 6 }}>Create Account</h1>
-          <p style={{ fontFamily: "DM Sans", fontSize: 13, color: "var(--tx-2)" }}>Start free. No credit card required.</p>
+          <h1 style={{ fontFamily: "var(--font-syne)", fontSize: 26, fontWeight: 800, letterSpacing: "-0.03em", marginBottom: 6 }}>Create Account</h1>
+          <p style={{ fontFamily: "var(--font-space-grotesk)", fontSize: 13, color: "var(--fog)" }}>Start free. No credit card required.</p>
         </div>
 
         {/* Google */}
@@ -103,7 +103,7 @@ export default function RegisterPage() {
             background: "rgba(255,255,255,0.03)",
             cursor: googleLoading ? "not-allowed" : "pointer",
             opacity: googleLoading ? 0.6 : 1,
-            fontFamily: "DM Sans", fontSize: 14, fontWeight: 500, color: "var(--tx-0)",
+            fontFamily: "var(--font-space-grotesk)", fontSize: 14, fontWeight: 500, color: "var(--paper)",
             transition: "all 0.15s ease",
             marginBottom: 20,
           }}
@@ -115,9 +115,9 @@ export default function RegisterPage() {
         </button>
 
         <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-          <div style={{ flex: 1, height: 1, background: "var(--bdr-1)" }} />
-          <span style={{ fontFamily: "DM Mono", fontSize: 10, color: "var(--tx-3)" }}>OR</span>
-          <div style={{ flex: 1, height: 1, background: "var(--bdr-1)" }} />
+          <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.07)" }} />
+          <span style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 10, color: "var(--slate)" }}>OR</span>
+          <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.07)" }} />
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -151,14 +151,14 @@ export default function RegisterPage() {
           </button>
         </form>
 
-        <p style={{ fontFamily: "DM Sans", fontSize: 11, color: "var(--tx-3)", textAlign: "center", marginTop: 14, lineHeight: 1.5 }}>
+        <p style={{ fontFamily: "var(--font-space-grotesk)", fontSize: 11, color: "var(--slate)", textAlign: "center", marginTop: 14, lineHeight: 1.5 }}>
           By registering you agree to our{" "}
           <Link href="/terms" style={{ color: "#f59e0b", textDecoration: "none" }}>Terms</Link> and{" "}
           <Link href="/privacy-policy" style={{ color: "#f59e0b", textDecoration: "none" }}>Privacy Policy</Link>
         </p>
 
-        <div style={{ marginTop: 20, paddingTop: 18, borderTop: "1px solid var(--bdr-1)", textAlign: "center" }}>
-          <p style={{ fontFamily: "DM Sans", fontSize: 13, color: "var(--tx-2)" }}>
+        <div style={{ marginTop: 20, paddingTop: 18, borderTop: "1px solid rgba(255,255,255,0.07)", textAlign: "center" }}>
+          <p style={{ fontFamily: "var(--font-space-grotesk)", fontSize: 13, color: "var(--fog)" }}>
             Already have an account?{" "}
             <Link href="/auth/login" style={{ color: "#f59e0b", fontWeight: 600, textDecoration: "none" }}>Sign in</Link>
           </p>

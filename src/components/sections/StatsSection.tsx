@@ -49,11 +49,11 @@ export default function StatsSection() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 2 }} className="stats-grid">
           {STATS.map((s, i) => (
             <div key={i} style={{ textAlign: "center", padding: "40px 20px", borderRight: i < 3 ? "1px solid rgba(255,255,255,0.06)" : "none" }}>
-              <div style={{ fontFamily: "Syne", fontSize: "clamp(44px,5vw,64px)", fontWeight: 800, color: s.color, lineHeight: 1, marginBottom: 10, letterSpacing: "-0.04em" }}>
+              <div style={{ fontFamily: "var(--font-syne)", fontSize: "clamp(44px,5vw,64px)", fontWeight: 800, color: s.color, lineHeight: 1, marginBottom: 10, letterSpacing: "-0.04em" }}>
                 <CountUp to={s.value} suffix={s.suffix} decimals={s.decimals || 0} />
               </div>
-              <div style={{ fontFamily: "Syne", fontSize: 15, fontWeight: 700, color: "var(--paper)", marginBottom: 5 }}>{s.label}</div>
-              <div style={{ fontFamily: "Space Grotesk", fontSize: 12, color: "var(--slate)" }}>{s.sub}</div>
+              <div style={{ fontFamily: "var(--font-syne)", fontSize: 15, fontWeight: 700, color: "var(--paper)", marginBottom: 5 }}>{s.label}</div>
+              <div style={{ fontFamily: "var(--font-space-grotesk)", fontSize: 12, color: "var(--slate)" }}>{s.sub}</div>
             </div>
           ))}
         </div>

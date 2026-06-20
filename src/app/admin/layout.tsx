@@ -35,13 +35,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <div style={{ padding:"18px 16px 14px",borderBottom:"1px solid rgba(255,255,255,0.06)" }}>
         <Link href="/" style={{ display:"flex",alignItems:"center",gap:9,textDecoration:"none",marginBottom:10 }}>
           <div style={{ width:28,height:28,borderRadius:8,background:"linear-gradient(135deg,#f5a623,#d97706)",display:"flex",alignItems:"center",justifyContent:"center" }}>
-            <span style={{ fontFamily:"JetBrains Mono",fontWeight:700,fontSize:11,color:"#0a0800" }}>Au</span>
+            <span style={{ fontFamily:"var(--font-jetbrains-mono)",fontWeight:700,fontSize:11,color:"#0a0800" }}>Au</span>
           </div>
-          <span style={{ fontFamily:"Syne",fontWeight:800,fontSize:14,color:"var(--paper)" }}>Gold<span style={{ color:"var(--gold)" }}>Predict</span></span>
+          <span style={{ fontFamily:"var(--font-syne)",fontWeight:800,fontSize:14,color:"var(--paper)" }}>Gold<span style={{ color:"var(--gold)" }}>Predict</span></span>
         </Link>
         <div style={{ display:"flex",alignItems:"center",gap:5 }}>
           <div style={{ width:5,height:5,borderRadius:"50%",background:"#a78bfa" }} />
-          <span style={{ fontFamily:"JetBrains Mono",fontSize:9,color:"#a78bfa",letterSpacing:"0.1em",textTransform:"uppercase" }}>Admin Panel</span>
+          <span style={{ fontFamily:"var(--font-jetbrains-mono)",fontSize:9,color:"#a78bfa",letterSpacing:"0.1em",textTransform:"uppercase" }}>Admin Panel</span>
         </div>
       </div>
       <nav style={{ flex:1,padding:"10px 8px",display:"flex",flexDirection:"column",gap:2 }}>
@@ -50,7 +50,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           return (
             <Link key={item.href} href={item.href} onClick={()=>setOpen(false)} style={{
               display:"flex",alignItems:"center",gap:10,padding:"9px 12px",borderRadius:12,
-              textDecoration:"none",fontFamily:"Space Grotesk",fontSize:13,fontWeight:500,
+              textDecoration:"none",fontFamily:"var(--font-space-grotesk)",fontSize:13,fontWeight:500,
               color:active?"#a78bfa":"var(--fog)",background:active?"rgba(167,139,250,0.1)":"transparent",
               transition:"all 0.15s ease",
             }}
@@ -61,7 +61,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           );
         })}
         <div style={{ height:1,background:"rgba(255,255,255,0.05)",margin:"8px 4px" }} />
-        <Link href="/dashboard" onClick={()=>setOpen(false)} style={{ display:"flex",alignItems:"center",gap:10,padding:"9px 12px",borderRadius:12,textDecoration:"none",fontFamily:"Space Grotesk",fontSize:13,fontWeight:500,color:"var(--slate)",transition:"all 0.15s ease" }}
+        <Link href="/dashboard" onClick={()=>setOpen(false)} style={{ display:"flex",alignItems:"center",gap:10,padding:"9px 12px",borderRadius:12,textDecoration:"none",fontFamily:"var(--font-space-grotesk)",fontSize:13,fontWeight:500,color:"var(--slate)",transition:"all 0.15s ease" }}
         onMouseEnter={e=>{e.currentTarget.style.color="var(--paper)";e.currentTarget.style.background="rgba(255,255,255,0.04)";}}
         onMouseLeave={e=>{e.currentTarget.style.color="var(--slate)";e.currentTarget.style.background="transparent";}}>
           <span style={{ fontSize:13,width:18,textAlign:"center" }}>←</span>User Dashboard
@@ -72,14 +72,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div style={{ display:"flex",alignItems:"center",gap:9,padding:"8px 12px",marginBottom:4 }}>
             <div style={{ width:28,height:28,borderRadius:"50%",background:"rgba(167,139,250,0.15)",border:"1px solid rgba(167,139,250,0.3)",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",flexShrink:0 }}>
               {user.avatar ? <img src={user.avatar} alt="" style={{ width:"100%",height:"100%",objectFit:"cover" }} />
-              : <span style={{ fontFamily:"Syne",fontWeight:700,fontSize:11,color:"#a78bfa" }}>{user.name?.[0]?.toUpperCase()}</span>}
+              : <span style={{ fontFamily:"var(--font-syne)",fontWeight:700,fontSize:11,color:"#a78bfa" }}>{user.name?.[0]?.toUpperCase()}</span>}
             </div>
             <div style={{ minWidth:0 }}>
-              <p style={{ fontFamily:"Syne",fontSize:12,fontWeight:600,color:"var(--paper)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{user.name}</p>
-              <p style={{ fontFamily:"JetBrains Mono",fontSize:9,color:"#a78bfa",letterSpacing:"0.06em" }}>{user.role}</p>
+              <p style={{ fontFamily:"var(--font-syne)",fontSize:12,fontWeight:600,color:"var(--paper)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{user.name}</p>
+              <p style={{ fontFamily:"var(--font-jetbrains-mono)",fontSize:9,color:"#a78bfa",letterSpacing:"0.06em" }}>{user.role}</p>
             </div>
           </div>
-          <button onClick={logout} style={{ width:"100%",padding:"7px 12px",borderRadius:10,background:"none",border:"1px solid rgba(255,255,255,0.07)",cursor:"pointer",fontFamily:"Space Grotesk",fontSize:12,color:"var(--slate)",transition:"all 0.15s ease" }}
+          <button onClick={logout} style={{ width:"100%",padding:"7px 12px",borderRadius:10,background:"none",border:"1px solid rgba(255,255,255,0.07)",cursor:"pointer",fontFamily:"var(--font-space-grotesk)",fontSize:12,color:"var(--slate)",transition:"all 0.15s ease" }}
           onMouseEnter={e=>{e.currentTarget.style.color="var(--paper)";}}
           onMouseLeave={e=>{e.currentTarget.style.color="var(--slate)";}}>Sign Out</button>
         </div>
@@ -108,11 +108,11 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <line x1="3" y1="7" x2="21" y2="7"/><line x1="3" y1="17" x2="21" y2="17"/>
             </svg>
           </button>
-          <span style={{ fontFamily:"JetBrains Mono",fontSize:10,color:"#a78bfa",letterSpacing:"0.1em",textTransform:"uppercase" }}>⚙ Admin Panel</span>
+          <span style={{ fontFamily:"var(--font-jetbrains-mono)",fontSize:10,color:"#a78bfa",letterSpacing:"0.1em",textTransform:"uppercase" }}>⚙ Admin Panel</span>
           <div style={{ flex:1 }} />
           <div style={{ display:"flex",alignItems:"center",gap:6 }}>
             <div className="live-dot" style={{ width:5,height:5 }} />
-            <span style={{ fontFamily:"JetBrains Mono",fontSize:9,color:"var(--up)",letterSpacing:"0.06em" }}>LIVE</span>
+            <span style={{ fontFamily:"var(--font-jetbrains-mono)",fontSize:9,color:"var(--up)",letterSpacing:"0.06em" }}>LIVE</span>
           </div>
         </header>
         <main style={{ flex:1,padding:"clamp(16px,2vw,24px)",overflow:"auto" }}>{children}</main>

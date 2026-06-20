@@ -18,7 +18,7 @@ export function FAQSection() {
       <div style={{ maxWidth:760, margin:"0 auto", padding:"0 24px" }}>
         <div style={{ textAlign:"center", marginBottom:52 }}>
           <div className="section-tag" style={{ display:"inline-flex", marginBottom:16 }}>FAQ</div>
-          <h2 style={{ fontFamily:"Syne", fontSize:"clamp(28px,3.5vw,44px)", fontWeight:800, letterSpacing:"-0.04em" }}>
+          <h2 style={{ fontFamily:"var(--font-syne)", fontSize:"clamp(28px,3.5vw,44px)", fontWeight:800, letterSpacing:"-0.04em" }}>
             Common Questions
           </h2>
         </div>
@@ -27,11 +27,11 @@ export function FAQSection() {
             <div key={i} className="card" style={{ overflow:"hidden", transition:"border-color 0.2s ease", borderColor:open===i?"rgba(245,166,35,0.3)":"rgba(255,255,255,0.06)" }}>
               <button onClick={()=>setOpen(open===i?null:i)}
                 style={{ width:"100%",display:"flex",alignItems:"center",justifyContent:"space-between",padding:"18px 22px",background:"none",border:"none",cursor:"pointer",textAlign:"left",gap:16 }}>
-                <span style={{ fontFamily:"Syne",fontSize:14,fontWeight:600,color:open===i?"var(--gold-bright)":"var(--paper)",flex:1,lineHeight:1.4,transition:"color 0.2s ease" }}>{f.q}</span>
+                <span style={{ fontFamily:"var(--font-syne)",fontSize:14,fontWeight:600,color:open===i?"var(--gold-bright)":"var(--paper)",flex:1,lineHeight:1.4,transition:"color 0.2s ease" }}>{f.q}</span>
                 <span style={{ color:"var(--gold)",fontSize:20,flexShrink:0,transform:`rotate(${open===i?45:0}deg)`,transition:"transform 0.25s cubic-bezier(0.22,1,0.36,1)",lineHeight:1 }}>+</span>
               </button>
               <div style={{ maxHeight:open===i?400:0,overflow:"hidden",transition:"max-height 0.35s cubic-bezier(0.22,1,0.36,1)" }}>
-                <p style={{ fontFamily:"Space Grotesk",fontSize:13,color:"var(--fog)",lineHeight:1.7,padding:"0 22px 20px" }}>{f.a}</p>
+                <p style={{ fontFamily:"var(--font-space-grotesk)",fontSize:13,color:"var(--fog)",lineHeight:1.7,padding:"0 22px 20px" }}>{f.a}</p>
               </div>
             </div>
           ))}

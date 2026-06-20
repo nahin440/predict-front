@@ -41,9 +41,9 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" style={{ display:"flex", alignItems:"center", gap:9, textDecoration:"none", marginRight:32, flexShrink:0 }}>
             <div style={{ width:30, height:30, borderRadius:9, background:"linear-gradient(135deg,#f5a623,#d97706)", display:"flex", alignItems:"center", justifyContent:"center", boxShadow:"0 0 16px rgba(245,166,35,0.45)" }}>
-              <span style={{ fontFamily:"JetBrains Mono",fontWeight:700,fontSize:12,color:"#0a0800" }}>Au</span>
+              <span style={{ fontFamily:"var(--font-jetbrains-mono)",fontWeight:700,fontSize:12,color:"#0a0800" }}>Au</span>
             </div>
-            <span style={{ fontFamily:"Syne",fontWeight:800,fontSize:16,color:"var(--paper)",letterSpacing:"-0.03em" }}>
+            <span style={{ fontFamily:"var(--font-syne)",fontWeight:800,fontSize:16,color:"var(--paper)",letterSpacing:"-0.03em" }}>
               Gold<span style={{ color:"var(--gold)" }}>Predict</span>
             </span>
           </Link>
@@ -78,11 +78,11 @@ export default function Navbar() {
                   <div style={{ width:26,height:26,borderRadius:"50%",background:"linear-gradient(135deg,rgba(245,166,35,0.3),rgba(245,166,35,0.1))",border:"1px solid rgba(245,166,35,0.4)",display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",flexShrink:0 }}>
                     {user.avatar
                       ? <img src={user.avatar} alt={user.name} style={{ width:"100%",height:"100%",objectFit:"cover" }} />
-                      : <span style={{ fontFamily:"Syne",fontWeight:700,fontSize:11,color:"var(--gold)" }}>{user.name?.[0]?.toUpperCase()}</span>}
+                      : <span style={{ fontFamily:"var(--font-syne)",fontWeight:700,fontSize:11,color:"var(--gold)" }}>{user.name?.[0]?.toUpperCase()}</span>}
                   </div>
-                  <span style={{ fontFamily:"Space Grotesk",fontSize:13,fontWeight:500,color:"var(--paper)",maxWidth:90,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{user.name}</span>
+                  <span style={{ fontFamily:"var(--font-space-grotesk)",fontSize:13,fontWeight:500,color:"var(--paper)",maxWidth:90,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{user.name}</span>
                 </Link>
-                <button onClick={logout} className="btn-ghost" style={{ background:"none",border:"none",cursor:"pointer",padding:"7px 14px",borderRadius:20,fontSize:13,color:"var(--slate)",fontFamily:"Space Grotesk",fontWeight:500,transition:"all 0.15s ease" }}
+                <button onClick={logout} className="btn-ghost" style={{ background:"none",border:"none",cursor:"pointer",padding:"7px 14px",borderRadius:20,fontSize:13,color:"var(--slate)",fontFamily:"var(--font-space-grotesk)",fontWeight:500,transition:"all 0.15s ease" }}
                 onMouseEnter={e=>{e.currentTarget.style.color="var(--paper)";e.currentTarget.style.background="rgba(255,255,255,0.05)";}}
                 onMouseLeave={e=>{e.currentTarget.style.color="var(--slate)";e.currentTarget.style.background="transparent";}}>
                   Sign Out
@@ -125,14 +125,14 @@ export default function Navbar() {
             {NAV.map(n=>(
               <Link key={n.href} href={n.href} style={{
                 padding:"16px 20px",borderRadius:14,fontSize:20,fontWeight:600,
-                fontFamily:"Syne",color:pathname===n.href?"var(--gold-bright)":"var(--paper)",
+                fontFamily:"var(--font-syne)",color:pathname===n.href?"var(--gold-bright)":"var(--paper)",
                 background:pathname===n.href?"rgba(245,166,35,0.08)":"transparent",
                 textDecoration:"none",borderBottom:"1px solid rgba(255,255,255,0.04)",
                 letterSpacing:"-0.02em",
               }}>{n.label}</Link>
             ))}
             {user && ["ADMIN","DEVELOPER","SEO_MANAGER","MODERATOR"].includes(user.role) && (
-              <Link href="/admin" style={{ padding:"16px 20px",borderRadius:14,fontSize:20,fontWeight:600,fontFamily:"Syne",color:"#a78bfa",textDecoration:"none",letterSpacing:"-0.02em" }}>Admin Panel</Link>
+              <Link href="/admin" style={{ padding:"16px 20px",borderRadius:14,fontSize:20,fontWeight:600,fontFamily:"var(--font-syne)",color:"#a78bfa",textDecoration:"none",letterSpacing:"-0.02em" }}>Admin Panel</Link>
             )}
           </nav>
           <div style={{ display:"flex",gap:12,marginTop:32 }}>
