@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 
-// Unsplash trading floor / gold images for the background
 const BG_URL = "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=1400&q=60&auto=format&fit=crop";
 
 function CountUp({ to, suffix = "", decimals = 0 }: { to: number; suffix?: string; decimals?: number }) {
@@ -40,25 +39,34 @@ const STATS = [
 
 export default function StatsSection() {
   return (
-    <section style={{ position: "relative", padding: "80px 0", overflow: "hidden" }}>
-      {/* Unsplash BG */}
-      <div style={{ position: "absolute", inset: 0, backgroundImage: `url(${BG_URL})`, backgroundSize: "cover", backgroundPosition: "center", filter: "grayscale(50%) brightness(0.15)", zIndex: 0 }} />
-      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg, rgba(8,8,9,0.95) 0%, rgba(8,8,9,0.7) 50%, rgba(8,8,9,0.95) 100%)", zIndex: 1 }} />
-
-      <div style={{ position: "relative", zIndex: 2, maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 2 }} className="stats-grid">
+    <section className="stats-section">
+      <div className="stats-bg" style={{ backgroundImage: `url(${BG_URL})` }} />
+      <div className="stats-bg-fade" />
+      <div className="container">
+        <div className="stats-grid">
           {STATS.map((s, i) => (
-            <div key={i} style={{ textAlign: "center", padding: "40px 20px", borderRight: i < 3 ? "1px solid rgba(255,255,255,0.06)" : "none" }}>
-              <div style={{ fontFamily: "var(--font-syne)", fontSize: "clamp(44px,5vw,64px)", fontWeight: 800, color: s.color, lineHeight: 1, marginBottom: 10, letterSpacing: "-0.04em" }}>
+            <div key={i} className="stats-item animate-pop fluid-safe" style={{ animationDelay: `${i * 0.08}s` }}>
+              <div className="fluid-num" style={{ color: s.color, fontWeight: 800, marginBottom: 10, letterSpacing: "-0.04em" }}>
                 <CountUp to={s.value} suffix={s.suffix} decimals={s.decimals || 0} />
               </div>
-              <div style={{ fontFamily: "var(--font-syne)", fontSize: 15, fontWeight: 700, color: "var(--paper)", marginBottom: 5 }}>{s.label}</div>
-              <div style={{ fontFamily: "var(--font-space-grotesk)", fontSize: 12, color: "var(--slate)" }}>{s.sub}</div>
+              <div style={{ fontFamily: "var(--font-syne)", fontSize: "clamp(13px,2.2vw,15px)", fontWeight: 700, color: "var(--paper)", marginBottom: 5 }}>{s.label}</div>
+              <div style={{ fontFamily: "var(--font-space-grotesk)", fontSize: "clamp(10px,1.8vw,12px)", color: "var(--slate)" }}>{s.sub}</div>
             </div>
           ))}
         </div>
       </div>
-      <style>{`@media(max-width:640px){.stats-grid{grid-template-columns:1fr 1fr !important;} .stats-grid > div{border-right:none !important; border-bottom:1px solid rgba(255,255,255,0.06);}}`}</style>
+      <style>{`
+        .stats-section { position: relative; padding-block: clamp(48px,8vw,80px); overflow: hidden; width: 100%; }
+        .stats-bg { position: absolute; inset: 0; background-size: cover; background-position: center; filter: grayscale(50%) brightness(0.15); z-index: 0; }
+        .stats-bg-fade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(8,8,9,0.95) 0%, rgba(8,8,9,0.7) 50%, rgba(8,8,9,0.95) 100%); z-index: 1; }
+        .stats-grid { position: relative; z-index: 2; display: grid; grid-template-columns: repeat(4,1fr); gap: 2px; width: 100%; }
+        .stats-item { padding: clamp(20px,4vw,40px) clamp(10px,2vw,20px); border-right: 1px solid rgba(255,255,255,0.06); }
+        .stats-item:last-child { border-right: none; }
+        @media(max-width:640px){
+          .stats-grid { grid-template-columns: 1fr 1fr; }
+          .stats-item { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        }
+      `}</style>
     </section>
   );
 }

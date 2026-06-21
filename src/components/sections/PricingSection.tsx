@@ -75,82 +75,81 @@ export function PricingSection() {
   const [yearly, setYearly] = useState(false);
 
   return (
-    <section style={{ padding:"100px 0", background:"var(--ink)" }} id="pricing">
-      <div style={{ maxWidth:1200, margin:"0 auto", padding:"0 24px" }}>
-        <div style={{ textAlign:"center", marginBottom:52 }}>
-          <div className="section-tag" style={{ display:"inline-flex", marginBottom:16 }}>Simple Pricing</div>
-          <h2 style={{ fontFamily:"var(--font-syne)", fontSize:"clamp(28px,3.5vw,48px)", fontWeight:800, letterSpacing:"-0.04em", marginBottom:14, lineHeight:1.0 }}>
+    <section className="section-pad" style={{ background:"var(--ink)", width:"100%" }} id="pricing">
+      <div className="container">
+        <div style={{ textAlign:"center", marginBottom:"clamp(36px,6vw,52px)" }}>
+          <div className="section-tag animate-rise" style={{ display:"inline-flex", marginBottom:16 }}>Simple Pricing</div>
+          <h2 className="fluid-h2 animate-rise" style={{ animationDelay:"0.08s", fontFamily:"var(--font-syne)", fontWeight:800, letterSpacing:"-0.04em", marginBottom:14 }}>
             <span style={{ color:"var(--paper)" }}>Pay for What</span><br />
             <span className="text-gradient-gold">You Actually Use.</span>
           </h2>
-          <p style={{ fontFamily:"var(--font-space-grotesk)", fontSize:15, color:"var(--fog)", marginBottom:28 }}>
+          <p className="fluid-body animate-rise" style={{ animationDelay:"0.15s", color:"var(--fog)", marginBottom:28 }}>
             Free shows direction only — upgrade for the data that lets you trade it.
           </p>
-          {/* LaunchDarkly segmented tab toggle */}
           <div className="tab-group" style={{ display:"inline-flex" }}>
             <button className={`tab-item${!yearly?" active":""}`} onClick={()=>setYearly(false)}>Monthly</button>
             <button className={`tab-item${yearly?" active":""}`} onClick={()=>setYearly(true)}>
               Yearly
-              <span style={{ fontFamily:"var(--font-jetbrains-mono)",fontSize:9,color:"var(--up)",background:"rgba(0,230,118,0.1)",border:"1px solid rgba(0,230,118,0.2)",padding:"1px 6px",borderRadius:99 }}>−20%</span>
+              <span style={{ fontFamily:"var(--font-jetbrains-mono)", fontSize:9, color:"var(--up)", background:"rgba(0,230,118,0.1)", border:"1px solid rgba(0,230,118,0.2)", padding:"1px 6px", borderRadius:99 }}>−20%</span>
             </button>
           </div>
         </div>
 
-        <div style={{ display:"grid", gridTemplateColumns:"repeat(4,1fr)", gap:14 }} className="pricing-grid">
+        <div className="pricing-grid">
           {PLANS.map(plan => {
             const price = yearly ? plan.yearly : plan.monthly;
             const isPop = plan.badge === "Most Popular";
             return (
-              <div key={plan.name} style={{
-                borderRadius:24, padding:"28px 22px",
+              <div key={plan.name} className="pricing-card fluid-safe" style={{
                 border:`1px solid ${isPop?`${plan.color}35`:"rgba(255,255,255,0.07)"}`,
                 background: isPop ? `linear-gradient(180deg,${plan.color}08 0%,var(--carbon) 40%)` : "var(--carbon)",
-                boxShadow: isPop ? `0 0 60px ${plan.color}14, var(--glow-card)` : "var(--glow-card)",
-                display:"flex", flexDirection:"column", position:"relative", overflow:"hidden",
-                transition:"transform 0.2s ease, box-shadow 0.2s ease",
-              }}
-              onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-4px)";e.currentTarget.style.boxShadow=`0 0 40px ${plan.color}20, var(--glow-card)`;}}
-              onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow=isPop?`0 0 60px ${plan.color}14, var(--glow-card)`:"var(--glow-card)";}}>
+                boxShadow: isPop ? `0 0 clamp(30px,6vw,60px) ${plan.color}14, var(--glow-card)` : "var(--glow-card)",
+              }}>
                 {plan.badge && (
-                  <div style={{ position:"absolute",top:0,right:0,background:plan.color,color:"#050507",fontFamily:"var(--font-syne)",fontWeight:700,fontSize:9,padding:"4px 14px 4px 20px",borderBottomLeftRadius:14,letterSpacing:"0.07em",textTransform:"uppercase" }}>
-                    {plan.badge}
-                  </div>
+                  <div className="pricing-badge" style={{ background:plan.color }}>{plan.badge}</div>
                 )}
                 <div style={{ marginBottom:20 }}>
-                  <div style={{ fontFamily:"var(--font-jetbrains-mono)",fontSize:9,color:plan.color,textTransform:"uppercase",letterSpacing:"0.12em",marginBottom:6 }}>{plan.name}</div>
-                  <div style={{ display:"flex",alignItems:"baseline",gap:4,marginBottom:8 }}>
+                  <div style={{ fontFamily:"var(--font-jetbrains-mono)", fontSize:9, color:plan.color, textTransform:"uppercase", letterSpacing:"0.12em", marginBottom:6 }}>{plan.name}</div>
+                  <div style={{ display:"flex", alignItems:"baseline", gap:4, marginBottom:8, flexWrap:"wrap" }}>
                     {price !== null ? (
                       <>
-                        <span style={{ fontFamily:"var(--font-syne)",fontSize:42,fontWeight:800,color:"var(--paper)",lineHeight:1,letterSpacing:"-0.04em" }}>${price}</span>
-                        <span style={{ fontFamily:"var(--font-space-grotesk)",fontSize:12,color:"var(--slate)" }}>/mo</span>
-                        {yearly && price > 0 && <span style={{ fontFamily:"var(--font-jetbrains-mono)",fontSize:9,color:"var(--up)",marginLeft:4 }}>billed yearly</span>}
+                        <span style={{ fontFamily:"var(--font-syne)", fontSize:"clamp(28px,5.5vw,42px)", fontWeight:800, color:"var(--paper)", lineHeight:1, letterSpacing:"-0.04em" }}>${price}</span>
+                        <span style={{ fontFamily:"var(--font-space-grotesk)", fontSize:"clamp(10px,2vw,12px)", color:"var(--slate)" }}>/mo</span>
+                        {yearly && price > 0 && <span style={{ fontFamily:"var(--font-jetbrains-mono)", fontSize:9, color:"var(--up)", marginLeft:4 }}>billed yearly</span>}
                       </>
                     ) : (
-                      <span style={{ fontFamily:"var(--font-syne)",fontSize:32,fontWeight:800,color:plan.color,letterSpacing:"-0.03em" }}>Custom</span>
+                      <span style={{ fontFamily:"var(--font-syne)", fontSize:"clamp(22px,4.5vw,32px)", fontWeight:800, color:plan.color, letterSpacing:"-0.03em" }}>Custom</span>
                     )}
                   </div>
-                  <p style={{ fontFamily:"var(--font-space-grotesk)",fontSize:12,color:"var(--slate)",lineHeight:1.5 }}>{plan.desc}</p>
+                  <p style={{ fontFamily:"var(--font-space-grotesk)", fontSize:"clamp(10px,2vw,12px)", color:"var(--slate)", lineHeight:1.5 }}>{plan.desc}</p>
                 </div>
-                <ul style={{ listStyle:"none",display:"flex",flexDirection:"column",gap:7,flex:1,marginBottom:22 }}>
+                <ul style={{ listStyle:"none", display:"flex", flexDirection:"column", gap:7, flex:1, marginBottom:22 }}>
                   {plan.features.map((f,i)=>(
-                    <li key={i} style={{ display:"flex",alignItems:"flex-start",gap:8 }}>
-                      <span style={{ color:f.y?plan.color:"var(--smoke)",fontSize:11,flexShrink:0,marginTop:1,fontWeight:700 }}>{f.y?"✓":"✗"}</span>
-                      <span style={{ fontFamily:"var(--font-space-grotesk)",fontSize:11,color:f.y?"var(--fog)":"var(--steel)",lineHeight:1.4 }}>{f.l}</span>
+                    <li key={i} style={{ display:"flex", alignItems:"flex-start", gap:8 }}>
+                      <span style={{ color:f.y?plan.color:"var(--smoke)", fontSize:11, flexShrink:0, marginTop:1, fontWeight:700 }}>{f.y?"✓":"✗"}</span>
+                      <span style={{ fontFamily:"var(--font-space-grotesk)", fontSize:"clamp(10px,2vw,11px)", color:f.y?"var(--fog)":"var(--steel)", lineHeight:1.4 }}>{f.l}</span>
                     </li>
                   ))}
                 </ul>
-                <Link href={plan.href} className={isPop?"btn btn-primary":"btn btn-outline"} style={{ textDecoration:"none",width:"100%",justifyContent:"center" }}>
+                <Link href={plan.href} className={isPop?"btn btn-primary":"btn btn-outline"} style={{ textDecoration:"none", width:"100%", justifyContent:"center" }}>
                   {plan.cta}
                 </Link>
               </div>
             );
           })}
         </div>
-        <p style={{ textAlign:"center",fontFamily:"var(--font-space-grotesk)",fontSize:12,color:"var(--slate)",marginTop:28 }}>
+        <p style={{ textAlign:"center", fontFamily:"var(--font-space-grotesk)", fontSize:"clamp(10px,2vw,12px)", color:"var(--slate)", marginTop:28 }}>
           No hidden fees · Cancel anytime · 7-day trial on Trader & Pro, no credit card required
         </p>
       </div>
-      <style>{`@media(max-width:1024px){.pricing-grid{grid-template-columns:1fr 1fr !important;}} @media(max-width:600px){.pricing-grid{grid-template-columns:1fr !important;}}`}</style>
+      <style>{`
+        .pricing-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: clamp(10px,2vw,14px); width: 100%; }
+        .pricing-card { border-radius: clamp(16px,3vw,24px); padding: clamp(20px,4vw,28px) clamp(16px,3vw,22px); display: flex; flex-direction: column; position: relative; overflow: hidden; min-width: 0; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .pricing-card:hover { transform: translateY(-4px); }
+        .pricing-badge { position: absolute; top: 0; right: 0; color: #050507; font-family: var(--font-syne); font-weight: 700; font-size: 9px; padding: 4px 14px 4px 20px; border-bottom-left-radius: 14px; letter-spacing: 0.07em; text-transform: uppercase; }
+        @media(max-width:1024px){ .pricing-grid{ grid-template-columns:1fr 1fr; } }
+        @media(max-width:600px){ .pricing-grid{ grid-template-columns:1fr; } }
+      `}</style>
     </section>
   );
 }

@@ -28,14 +28,14 @@ export default function Navbar() {
     <>
       {/* ── Floating pill nav (LaunchDarkly signature) ── */}
       <header style={{
-        position: "fixed", top: 20, left: 0, right: 0, zIndex: 100,
-        display: "flex", justifyContent: "center", padding: "0 16px",
+        position: "fixed", top: "clamp(10px,2.5vw,20px)", left: 0, right: 0, zIndex: 100,
+        display: "flex", justifyContent: "center", padding: "0 clamp(10px,3vw,16px)",
         transition: "top 0.3s ease",
       }}>
         <nav className="nav-pill" style={{
           width: "100%", maxWidth: 1040,
           display: "flex", alignItems: "center",
-          padding: "6px 6px 6px 24px",
+          padding: "6px 6px 6px clamp(14px,3vw,24px)",
           gap: 0,
         }}>
           {/* Logo */}

@@ -25,32 +25,24 @@ function FeatureCard({ f, index }: { f: typeof FEATURES[0]; index: number }) {
   }, []);
 
   return (
-    <div ref={ref} className="card card-hover" style={{
-      padding: 0, overflow: "hidden", cursor: "pointer",
+    <div ref={ref} className="card card-hover feat-card" style={{
       opacity: vis ? 1 : 0,
-      transform: vis ? "translateY(0)" : "translateY(24px)",
-      transition: `opacity 0.5s ease ${index * 55}ms, transform 0.55s cubic-bezier(0.22,1,0.36,1) ${index * 55}ms, border-color 0.2s ease, box-shadow 0.2s ease`,
+      transform: vis ? "translateY(0) scale(1)" : "translateY(24px) scale(0.97)",
+      transitionDelay: `${index * 55}ms`,
     }}
     onMouseEnter={() => setHovered(true)}
     onMouseLeave={() => setHovered(false)}>
-      {/* Image strip with Unsplash photo */}
-      <div style={{
-        height: 120, overflow: "hidden", position: "relative",
+      <div className="feat-img" style={{
         backgroundImage: `url(${f.img})`,
-        backgroundSize: "cover", backgroundPosition: "center",
-        filter: hovered ? "grayscale(0%) brightness(0.5)" : "grayscale(60%) brightness(0.3)",
-        transition: "filter 0.4s ease",
+        filter: hovered ? "grayscale(0%) brightness(0.5) scale(1.08)" : "grayscale(60%) brightness(0.3) scale(1)",
       }}>
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, transparent 30%, var(--carbon))" }} />
-        <div style={{ position: "absolute", top: 12, right: 12 }}>
-          <span className="badge badge-gold" style={{ fontSize: 9 }}>{f.tag}</span>
-        </div>
-        <div style={{ position: "absolute", bottom: 12, left: 16, fontSize: 28 }}>{f.icon}</div>
+        <div className="feat-img-fade" />
+        <div className="feat-tag-wrap"><span className="badge badge-gold" style={{ fontSize: "clamp(8px,1.6vw,9px)" }}>{f.tag}</span></div>
+        <div className="feat-icon" style={{ transform: hovered ? "translateY(-4px) scale(1.1)" : "none" }}>{f.icon}</div>
       </div>
-      {/* Content */}
-      <div style={{ padding: "16px 20px 20px" }}>
-        <h3 style={{ fontFamily: "var(--font-syne)", fontSize: 14, fontWeight: 700, marginBottom: 7, color: hovered ? "var(--gold-bright)" : "var(--paper)", transition: "color 0.2s ease" }}>{f.title}</h3>
-        <p style={{ fontFamily: "var(--font-space-grotesk)", fontSize: 12, color: "var(--slate)", lineHeight: 1.6 }}>{f.desc}</p>
+      <div className="feat-body fluid-safe">
+        <h3 style={{ fontFamily: "var(--font-syne)", fontSize: "clamp(13px,2.2vw,14px)", fontWeight: 700, marginBottom: 7, color: hovered ? "var(--gold-bright)" : "var(--paper)", transition: "color 0.2s ease" }}>{f.title}</h3>
+        <p style={{ fontFamily: "var(--font-space-grotesk)", fontSize: "clamp(11px,2vw,12px)", color: "var(--slate)", lineHeight: 1.6 }}>{f.desc}</p>
       </div>
     </div>
   );
@@ -58,23 +50,33 @@ function FeatureCard({ f, index }: { f: typeof FEATURES[0]; index: number }) {
 
 export default function FeaturesSection() {
   return (
-    <section style={{ padding: "100px 0", background: "var(--ink)" }}>
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 24px" }}>
-        <div style={{ textAlign: "center", marginBottom: 64 }}>
-          <div className="section-tag animate-fade-up d0" style={{ display: "inline-flex", marginBottom: 18 }}>Intelligence Stack</div>
-          <h2 className="animate-fade-up d1" style={{ fontFamily: "var(--font-syne)", fontSize: "clamp(28px,3.5vw,48px)", fontWeight: 800, letterSpacing: "-0.04em", marginBottom: 16, lineHeight: 1.0 }}>
+    <section className="section-pad" style={{ background: "var(--ink)", width: "100%" }}>
+      <div className="container">
+        <div style={{ textAlign: "center", marginBottom: "clamp(40px,7vw,64px)" }}>
+          <div className="section-tag animate-rise" style={{ display: "inline-flex", marginBottom: 18 }}>Intelligence Stack</div>
+          <h2 className="fluid-h2 animate-rise" style={{ animationDelay: "0.08s", fontFamily: "var(--font-syne)", fontWeight: 800, letterSpacing: "-0.04em", marginBottom: 16 }}>
             <span style={{ color: "var(--paper)" }}>Institutional Tech.</span><br />
             <span className="text-gradient-gold">Accessible Price.</span>
           </h2>
-          <p className="animate-fade-up d2" style={{ fontFamily: "var(--font-space-grotesk)", fontSize: 16, color: "var(--fog)", maxWidth: 500, margin: "0 auto" }}>
+          <p className="fluid-body animate-rise" style={{ animationDelay: "0.15s", color: "var(--fog)", maxWidth: "50ch", margin: "0 auto" }}>
             Nine intelligence layers distilled into one signal — every 15 minutes.
           </p>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 14 }} className="feat-grid">
+        <div className="feat-grid">
           {FEATURES.map((f, i) => <FeatureCard key={i} f={f} index={i} />)}
         </div>
       </div>
-      <style>{`@media(max-width:900px){.feat-grid{grid-template-columns:1fr 1fr !important;}} @media(max-width:580px){.feat-grid{grid-template-columns:1fr !important;}}`}</style>
+      <style>{`
+        .feat-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: clamp(10px,2vw,14px); width: 100%; }
+        .feat-card { padding: 0; overflow: hidden; cursor: pointer; min-width: 0; transition: opacity 0.5s ease, transform 0.55s cubic-bezier(0.22,1,0.36,1), border-color 0.2s ease, box-shadow 0.2s ease; }
+        .feat-img { height: clamp(90px,16vw,120px); overflow: hidden; position: relative; background-size: cover; background-position: center; transition: filter 0.4s ease; }
+        .feat-img-fade { position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 30%, var(--carbon)); }
+        .feat-tag-wrap { position: absolute; top: 10px; right: 10px; }
+        .feat-icon { position: absolute; bottom: 10px; left: 14px; font-size: clamp(20px,4vw,28px); transition: transform 0.3s ease; }
+        .feat-body { padding: clamp(12px,2.5vw,16px) clamp(14px,3vw,20px) clamp(16px,3vw,20px); }
+        @media(max-width:900px){ .feat-grid{ grid-template-columns:1fr 1fr; } }
+        @media(max-width:560px){ .feat-grid{ grid-template-columns:1fr; } }
+      `}</style>
     </section>
   );
 }

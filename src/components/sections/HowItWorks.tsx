@@ -18,75 +18,68 @@ function StepCard({ step, index, isRight }: { step: typeof STEPS[0]; index: numb
     return () => obs.disconnect();
   }, []);
 
+  const body = (
+    <div className="card step-card">
+      <div className="step-inner">
+        <div className="step-img" style={{ backgroundImage: `url(${step.img})`, order: isRight ? 2 : 0 }} />
+        <div className="step-text" style={{ textAlign: isRight ? "right" as const : "left" as const, order: 1 }}>
+          <div style={{ fontFamily:"var(--font-jetbrains-mono)", fontSize:"clamp(8px,1.6vw,9px)", color:step.color, textTransform:"uppercase", letterSpacing:"0.1em", marginBottom:6 }}>Layer {step.n}</div>
+          <h3 style={{ fontFamily:"var(--font-syne)", fontSize:"clamp(13px,2.4vw,14px)", fontWeight:700, marginBottom:8, letterSpacing:"-0.02em" }}>{step.title}</h3>
+          <p style={{ fontFamily:"var(--font-space-grotesk)", fontSize:"clamp(11px,2vw,12px)", color:"var(--slate)", lineHeight:1.6 }}>{step.desc}</p>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <div ref={ref} style={{
-      display:"grid", gridTemplateColumns:"1fr 56px 1fr", gap:20, alignItems:"center",
-      opacity: vis?1:0, transform: vis?"none":`translateX(${isRight?-32:32}px)`,
-      transition:`opacity 0.55s ease ${index*80}ms, transform 0.6s cubic-bezier(0.22,1,0.36,1) ${index*80}ms`
-    }} className="step-row">
-      {isRight ? (
-        <>
-          <div className="card" style={{ padding:0, overflow:"hidden" }}>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr" }} className="step-inner">
-              <div style={{ padding:"20px 20px 20px" }}>
-                <div style={{ fontFamily:"var(--font-jetbrains-mono)",fontSize:9,color:step.color,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:6 }}>Layer {step.n}</div>
-                <h3 style={{ fontFamily:"var(--font-syne)",fontSize:14,fontWeight:700,marginBottom:8,letterSpacing:"-0.02em" }}>{step.title}</h3>
-                <p style={{ fontFamily:"var(--font-space-grotesk)",fontSize:12,color:"var(--slate)",lineHeight:1.6 }}>{step.desc}</p>
-              </div>
-              <div style={{ backgroundImage:`url(${step.img})`, backgroundSize:"cover", backgroundPosition:"center", minHeight:140, filter:"grayscale(50%) brightness(0.3)" }} className="step-img" />
-            </div>
-          </div>
-          <div style={{ display:"flex",alignItems:"center",justifyContent:"center",width:56,height:56,borderRadius:"50%",background:`linear-gradient(135deg,${step.color}30,${step.color}10)`,border:`2px solid ${step.color}50`,fontSize:22,margin:"0 auto",position:"relative",zIndex:2,flexShrink:0 }}>{step.icon}</div>
-          <div />
-        </>
-      ) : (
-        <>
-          <div />
-          <div style={{ display:"flex",alignItems:"center",justifyContent:"center",width:56,height:56,borderRadius:"50%",background:`linear-gradient(135deg,${step.color}30,${step.color}10)`,border:`2px solid ${step.color}50`,fontSize:22,margin:"0 auto",position:"relative",zIndex:2,flexShrink:0 }}>{step.icon}</div>
-          <div className="card" style={{ padding:0, overflow:"hidden" }}>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr" }} className="step-inner">
-              <div style={{ backgroundImage:`url(${step.img})`, backgroundSize:"cover", backgroundPosition:"center", minHeight:140, filter:"grayscale(50%) brightness(0.3)" }} className="step-img" />
-              <div style={{ padding:"20px 20px 20px" }}>
-                <div style={{ fontFamily:"var(--font-jetbrains-mono)",fontSize:9,color:step.color,textTransform:"uppercase",letterSpacing:"0.1em",marginBottom:6 }}>Layer {step.n}</div>
-                <h3 style={{ fontFamily:"var(--font-syne)",fontSize:14,fontWeight:700,marginBottom:8,letterSpacing:"-0.02em" }}>{step.title}</h3>
-                <p style={{ fontFamily:"var(--font-space-grotesk)",fontSize:12,color:"var(--slate)",lineHeight:1.6 }}>{step.desc}</p>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
+    <div ref={ref} className="step-row" style={{
+      opacity: vis ? 1 : 0,
+      transform: vis ? "none" : `translateX(clamp(-32px,${isRight?-6:6}vw,32px))`,
+      transitionDelay: `${index * 80}ms`,
+    }}>
+      {!isRight && <div className="step-icon-wrap"><div className="step-icon" style={{ background:`linear-gradient(135deg,${step.color}30,${step.color}10)`, borderColor:`${step.color}50` }}>{step.icon}</div></div>}
+      <div className="step-card-wrap">{body}</div>
+      {isRight && <div className="step-icon-wrap"><div className="step-icon" style={{ background:`linear-gradient(135deg,${step.color}30,${step.color}10)`, borderColor:`${step.color}50` }}>{step.icon}</div></div>}
     </div>
   );
 }
 
 export default function HowItWorks() {
   return (
-    <section style={{ padding:"100px 0", background:"var(--carbon)" }}>
-      <div style={{ maxWidth:1100, margin:"0 auto", padding:"0 24px" }}>
-        <div style={{ textAlign:"center", marginBottom:64 }}>
-          <div className="section-tag" style={{ display:"inline-flex", marginBottom:16 }}>Signal Architecture</div>
-          <h2 style={{ fontFamily:"var(--font-syne)", fontSize:"clamp(28px,3.5vw,48px)", fontWeight:800, letterSpacing:"-0.04em", marginBottom:14 }}>
+    <section className="section-pad" style={{ background:"var(--carbon)", width:"100%" }}>
+      <div className="container container-narrow">
+        <div style={{ textAlign:"center", marginBottom:"clamp(40px,7vw,64px)" }}>
+          <div className="section-tag animate-rise" style={{ display:"inline-flex", marginBottom:16 }}>Signal Architecture</div>
+          <h2 className="fluid-h2 animate-rise" style={{ animationDelay:"0.08s", fontFamily:"var(--font-syne)", fontWeight:800, letterSpacing:"-0.04em", marginBottom:14 }}>
             <span style={{ color:"var(--paper)" }}>The 5-Layer</span><br />
             <span className="text-gradient-gold">Decision Waterfall</span>
           </h2>
-          <p style={{ fontFamily:"var(--font-space-grotesk)", fontSize:15, color:"var(--fog)", maxWidth:440, margin:"0 auto" }}>
+          <p className="fluid-body animate-rise" style={{ animationDelay:"0.15s", color:"var(--fog)", maxWidth:"42ch", margin:"0 auto" }}>
             Every signal passes five consecutive gates. Fail any one — the trade is skipped.
           </p>
         </div>
-        <div style={{ position:"relative", display:"flex", flexDirection:"column", gap:16 }}>
-          {/* Vertical connector */}
-          <div style={{ position:"absolute",left:"50%",top:28,bottom:28,width:1,background:"linear-gradient(to bottom,transparent,rgba(245,166,35,0.3),rgba(245,166,35,0.3),transparent)",transform:"translateX(-50%)" }} className="connector-line" />
+        <div className="steps-wrap">
+          <div className="steps-connector" />
           {STEPS.map((s,i) => <StepCard key={i} step={s} index={i} isRight={i%2===0} />)}
         </div>
       </div>
       <style>{`
-        .connector-line{display:block;}
+        .steps-wrap { position: relative; display: flex; flex-direction: column; gap: clamp(12px,2.5vw,16px); width: 100%; }
+        .steps-connector { position: absolute; left: 50%; top: clamp(20px,4vw,28px); bottom: clamp(20px,4vw,28px); width: 1px; background: linear-gradient(to bottom,transparent,rgba(245,166,35,0.3),rgba(245,166,35,0.3),transparent); transform: translateX(-50%); }
+        .step-row { display: grid; grid-template-columns: 1fr clamp(40px,7vw,56px) 1fr; gap: clamp(10px,2.5vw,20px); align-items: center; width: 100%; transition: opacity 0.55s ease, transform 0.6s cubic-bezier(0.22,1,0.36,1); }
+        .step-icon-wrap { display: flex; justify-content: center; }
+        .step-icon { display: flex; align-items: center; justify-content: center; width: clamp(40px,7vw,56px); height: clamp(40px,7vw,56px); border-radius: 50%; border-width: 2px; border-style: solid; font-size: clamp(16px,3vw,22px); position: relative; z-index: 2; flex-shrink: 0; }
+        .step-card { padding: 0; overflow: hidden; min-width: 0; }
+        .step-inner { display: grid; grid-template-columns: 1fr 1fr; min-width: 0; }
+        .step-img { background-size: cover; background-position: center; min-height: clamp(110px,18vw,140px); filter: grayscale(50%) brightness(0.3); }
+        .step-text { padding: clamp(14px,3vw,20px); min-width: 0; }
         @media(max-width:700px){
-          .step-row{grid-template-columns:1fr !important;}
-          .step-row > div:nth-child(2){display:none;}
-          .connector-line{display:none !important;}
-          .step-inner{grid-template-columns:1fr !important;}
-          .step-img{display:none;}
+          .step-row { grid-template-columns: 1fr; }
+          .step-row > .step-icon-wrap { display: none; }
+          .steps-connector { display: none; }
+          .step-inner { grid-template-columns: 1fr; }
+          .step-img { display: none; }
+          .step-text { text-align: left !important; }
         }
       `}</style>
     </section>
