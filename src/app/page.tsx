@@ -13,7 +13,7 @@ import PricingSection from "@/components/sections/PricingSection";
 import { FAQSection } from "@/components/sections/FAQSection";
 import CTASection from "@/components/sections/CTASection";
 import connectDB from "@/lib/db/mongoose";
-import Prediction from "@/models/Prediction";
+import { getPredictionModel } from "@/models/Prediction";
 
 // Revalidate every 60s — predictions only change every 15 minutes anyway,
 // so there's no need to hit MongoDB on every single page request.
@@ -29,6 +29,8 @@ export const metadata: Metadata = {
 async function getLatestPrediction() {
   try {
     await connectDB();
+    // Homepage preview always shows the fastest-updating feed (M15).
+    const Prediction = getPredictionModel("m15");
     const p = await Prediction.findOne().sort({ timestamp: -1 }).lean();
     return p ? JSON.parse(JSON.stringify(p)) : null;
   } catch { return null; }

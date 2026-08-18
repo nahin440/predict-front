@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from "recharts";
+import TimeframeTabs, { Timeframe } from "@/components/predictions/TimeframeTabs";
 
 interface Stats {
   totalPredictions: number;
@@ -15,15 +16,17 @@ interface Stats {
 const COLORS = ["#f59e0b", "#10b981", "#ef4444", "#6b7280"];
 
 export default function AdminAnalyticsPage() {
+  const [timeframe, setTimeframe] = useState<Timeframe>("m15");
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/predictions/stats")
+    setLoading(true);
+    fetch(`/api/predictions/${timeframe}/stats`)
       .then(r => r.json())
-      .then(d => { if (d.success) setStats(d.data); })
+      .then(d => { if (d.success) setStats(d.data); else setStats(null); })
       .finally(() => setLoading(false));
-  }, []);
+  }, [timeframe]);
 
   const pieData = stats ? [
     { name: "Bull Signals", value: stats.bullSignals },
@@ -41,9 +44,12 @@ export default function AdminAnalyticsPage() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-fade-in">
-      <div>
-        <h1 className="text-2xl font-black tracking-tight">Analytics</h1>
-        <p className="text-sm text-[#62626f] mt-1">Platform performance metrics</p>
+      <div className="flex items-center justify-between flex-wrap gap-4">
+        <div>
+          <h1 className="text-2xl font-black tracking-tight">Analytics</h1>
+          <p className="text-sm text-[#62626f] mt-1">Platform performance metrics · {timeframe.toUpperCase()}</p>
+        </div>
+        <TimeframeTabs active={timeframe} onChange={setTimeframe} size="sm" />
       </div>
 
       {loading ? (

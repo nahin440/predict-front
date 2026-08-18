@@ -71,7 +71,46 @@ PredictionSchema.index({ direction: 1, should_skip: 1 });
 PredictionSchema.index({ confidence: -1 });
 PredictionSchema.index({ saved_at: -1 });
 
-const Prediction: Model<mongoose.Document> =
-  mongoose.models.Prediction || mongoose.model("Prediction", PredictionSchema, "predictions");
+// ─── Multi-timeframe support ───────────────────────────────────────────────
+// The bot backend now runs three independent bots (M15 / H1 / H4), each
+// writing into its own MongoDB collection within the same "xau_dashboard"
+// database: predictions_m15, predictions_h1, predictions_h4.
+// getPredictionModel(tf) returns a Mongoose model bound to the right
+// collection, caching each one on mongoose.models so we never redefine the
+// same model twice (which mongoose/Next.js hot-reload would otherwise throw
+// on).
+export type Timeframe = "m15" | "h1" | "h4";
+
+export const TIMEFRAMES: Timeframe[] = ["m15", "h1", "h4"];
+
+export const TIMEFRAME_LABELS: Record<Timeframe, string> = {
+  m15: "M15",
+  h1: "H1",
+  h4: "H4",
+};
+
+const COLLECTION_BY_TF: Record<Timeframe, string> = {
+  m15: "predictions_m15",
+  h1: "predictions_h1",
+  h4: "predictions_h4",
+};
+
+export function isTimeframe(value: string | null | undefined): value is Timeframe {
+  return !!value && (TIMEFRAMES as string[]).includes(value);
+}
+
+export function getPredictionModel(tf: Timeframe): Model<mongoose.Document> {
+  const modelName = `Prediction_${tf}`;
+  const collectionName = COLLECTION_BY_TF[tf];
+  return (
+    (mongoose.models[modelName] as Model<mongoose.Document>) ||
+    mongoose.model(modelName, PredictionSchema, collectionName)
+  );
+}
+
+// Back-compat default export — kept pointed at the M15 collection (the
+// original single-bot collection name before the multi-timeframe split)
+// so any code that hasn't been migrated yet still works.
+const Prediction: Model<mongoose.Document> = getPredictionModel("m15");
 
 export default Prediction;

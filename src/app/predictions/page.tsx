@@ -4,6 +4,15 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth/AuthContext";
+import TimeframeTabs, { Timeframe, TIMEFRAME_META } from "@/components/predictions/TimeframeTabs";
+
+// How often each timeframe's bot posts a new prediction — drives the
+// countdown ring and the auto-refresh interval.
+const REFRESH_MS: Record<Timeframe, number> = {
+  m15: 900_000,   // 15 min
+  h1: 3_600_000,  // 1 hour
+  h4: 14_400_000, // 4 hours
+};
 
 type Prediction = Record<string, unknown>;
 
@@ -35,32 +44,36 @@ function LockedBlur({ children, label }: { children: React.ReactNode; label: str
 
 export default function PredictionsPage() {
   const { user, token } = useAuth();
+  const [timeframe, setTimeframe] = useState<Timeframe>("m15");
   const [pred, setPred] = useState<Prediction | null>(null);
   const [history, setHistory] = useState<Prediction[]>([]);
   const [loading, setLoading] = useState(true);
-  const [countdown, setCountdown] = useState(900);
+  const [countdown, setCountdown] = useState(REFRESH_MS.m15 / 1000);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const isPremium = user ? (isPremiumRole(user.role) || user.subscription?.plan !== "free") : false;
+  const refreshSeconds = REFRESH_MS[timeframe] / 1000;
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (tf: Timeframe) => {
     const headers: Record<string, string> = {};
     if (token) headers["Authorization"] = `Bearer ${token}`;
     try {
       const [pRes, hRes] = await Promise.all([
-        fetch("/api/predictions/current", { headers }),
-        fetch("/api/predictions/history?limit=15", { headers })
+        fetch(`/api/predictions/${tf}/current`, { headers }),
+        fetch(`/api/predictions/${tf}/history?limit=15`, { headers })
       ]);
-      if (pRes.ok) { const d = await pRes.json(); setPred(d.data); }
-      if (hRes.ok) { const d = await hRes.json(); setHistory(d.data || []); }
+      if (pRes.ok) { const d = await pRes.json(); setPred(d.data); } else { setPred(null); }
+      if (hRes.ok) { const d = await hRes.json(); setHistory(d.data || []); } else { setHistory([]); }
     } catch { /* silent */ } finally { setLoading(false); }
-    setCountdown(900);
   }, [token]);
 
+  // Switching timeframe: reload data for the new tab and reset the countdown.
   useEffect(() => {
-    fetchData();
-    timerRef.current = setInterval(fetchData, 900_000);
+    setLoading(true);
+    fetchData(timeframe);
+    setCountdown(REFRESH_MS[timeframe] / 1000);
+    timerRef.current = setInterval(() => fetchData(timeframe), REFRESH_MS[timeframe]);
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [fetchData]);
+  }, [timeframe, fetchData]);
 
   useEffect(() => {
     const t = setInterval(() => setCountdown(c => c > 0 ? c - 1 : 0), 1000);
@@ -69,7 +82,7 @@ export default function PredictionsPage() {
 
   const min = Math.floor(countdown / 60);
   const sec = countdown % 60;
-  const pct = ((900 - countdown) / 900) * 100;
+  const pct = ((refreshSeconds - countdown) / refreshSeconds) * 100;
 
   const conf = pred?.confluence as Record<string, unknown> | undefined;
   const regime = pred?.regime as Record<string, unknown> | undefined;
@@ -100,9 +113,12 @@ export default function PredictionsPage() {
           <h1 className="animate-fade-up d1" style={{ fontFamily: "var(--font-syne)", fontWeight: 800, fontSize: "clamp(26px,4.5vw,44px)", letterSpacing: "-0.03em", lineHeight: 1.05, marginBottom: 8 }}>
             XAUUSD Signal Intelligence
           </h1>
-          <p className="animate-fade-up d2" style={{ fontFamily: "var(--font-space-grotesk)", fontSize: "clamp(12px,2vw,15px)", color: "var(--fog)", maxWidth: 480 }}>
-            Updated every 15 minutes by our ensemble ML pipeline.
+          <p className="animate-fade-up d2" style={{ fontFamily: "var(--font-space-grotesk)", fontSize: "clamp(12px,2vw,15px)", color: "var(--fog)", maxWidth: 480, marginBottom: 18 }}>
+            {TIMEFRAME_META[timeframe].sublabel} predictions from our ensemble ML pipeline.
           </p>
+          <div className="animate-fade-up d2">
+            <TimeframeTabs active={timeframe} onChange={setTimeframe} />
+          </div>
         </div>
       </div>
 
@@ -124,7 +140,7 @@ export default function PredictionsPage() {
                 {min}:{sec.toString().padStart(2, "0")}
               </span>
             </div>
-            <button onClick={fetchData} className="btn btn-secondary btn-xs">↻</button>
+            <button onClick={() => fetchData(timeframe)} className="btn btn-secondary btn-xs">↻</button>
             {!isPremium && <Link href="/pricing" className="btn btn-primary btn-xs" style={{ textDecoration: "none" }}>✦ Go Pro</Link>}
           </div>
         </div>
@@ -403,7 +419,7 @@ export default function PredictionsPage() {
             {history.length > 0 && (
               <div className="card" style={{ overflow: "hidden" }}>
                 <div style={{ padding: "14px clamp(14px,4vw,20px)", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
-                  <span style={{ fontFamily: "var(--font-space-grotesk)", fontSize: 14, fontWeight: 600 }}>Recent Predictions</span>
+                  <span style={{ fontFamily: "var(--font-space-grotesk)", fontSize: 14, fontWeight: 600 }}>Recent {TIMEFRAME_META[timeframe].label} Predictions</span>
                   {!isPremium && <Link href="/pricing" style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 10, color: "var(--gold)", textDecoration: "none" }}>Unlock full history →</Link>}
                 </div>
                 <div className="table-wrap">
@@ -456,7 +472,7 @@ export default function PredictionsPage() {
           </div>
         ) : (
           <div className="card" style={{ padding: "56px 24px", textAlign: "center" }}>
-            <p style={{ fontFamily: "var(--font-space-grotesk)", fontSize: 15, color: "var(--fog)" }}>No prediction data yet. Your Python bot will post signals here automatically.</p>
+            <p style={{ fontFamily: "var(--font-space-grotesk)", fontSize: 15, color: "var(--fog)" }}>No {TIMEFRAME_META[timeframe].label} prediction data yet. Your Python bot will post signals here automatically.</p>
           </div>
         )}
       </div>
