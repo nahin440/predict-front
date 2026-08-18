@@ -33,7 +33,7 @@ async function getLatestPrediction() {
     const Prediction = getPredictionModel("m15");
     const p = await Prediction.findOne().sort({ timestamp: -1 }).lean();
     return p ? JSON.parse(JSON.stringify(p)) : null;
-  } catch { return null; }
+  } catch { return null ; }
 }
 
 export default async function HomePage() {
