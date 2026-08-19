@@ -26,14 +26,10 @@ export default function AdminSettingsPage() {
         <h2 className="text-sm font-bold uppercase tracking-wider text-[#62626f] mb-5">Bot API Configuration</h2>
         <div className="space-y-4">
           <div>
-            <label className="label">V1 Prediction Endpoints (per timeframe)</label>
-            <div className="space-y-2">
-              {["m15", "h1", "h4"].map(tf => (
-                <div key={tf} className="flex gap-2">
-                  <input className="input font-mono text-sm" value={`/api/v1/predictions?tf=${tf}`} readOnly />
-                  <button onClick={() => copyKey(`/api/v1/predictions?tf=${tf}`)} className="btn btn-secondary btn-sm whitespace-nowrap">Copy</button>
-                </div>
-              ))}
+            <label className="label">V1 Prediction Endpoint</label>
+            <div className="flex gap-2">
+              <input className="input font-mono text-sm" value="/api/v1/predictions" readOnly />
+              <button onClick={() => copyKey("/api/v1/predictions")} className="btn btn-secondary btn-sm whitespace-nowrap">Copy</button>
             </div>
           </div>
           <div>
@@ -52,19 +48,13 @@ export default function AdminSettingsPage() {
       {/* Python code snippet */}
       <div className="card p-6">
         <h2 className="text-sm font-bold uppercase tracking-wider text-[#62626f] mb-4">Python Bot Integration</h2>
-        <p className="text-sm text-[#a0a0ab] mb-4">
-          Your M15/H1/H4 bots already write straight to MongoDB (see below) — this HTTP endpoint is only
-          needed for an optional push-based integration, e.g. from a different environment. Pass{" "}
-          <code className="text-amber-400">tf</code> as <code className="text-amber-400">m15</code>,{" "}
-          <code className="text-amber-400">h1</code>, or <code className="text-amber-400">h4</code>:
-        </p>
+        <p className="text-sm text-[#a0a0ab] mb-4">Add this to your Python MT5 bot to push predictions to the platform:</p>
         <div className="bg-black/50 rounded-xl p-5 font-mono text-xs overflow-x-auto border border-white/[0.06]">
           <p className="text-emerald-400 mb-1">import requests</p>
           <p className="text-[#a0a0ab] mb-3"></p>
-          <p className="text-amber-400">def push_prediction(data: dict, timeframe: str):</p>
-          <p className="text-[#a0a0ab] ml-4"># timeframe is one of &quot;m15&quot;, &quot;h1&quot;, &quot;h4&quot;</p>
+          <p className="text-amber-400">def push_prediction(data: dict):</p>
           <p className="text-[#a0a0ab] ml-4">res = requests.post(</p>
-          <p className="text-[#62626f] ml-8">f&quot;https://your-domain.com/api/v1/predictions?tf={"{timeframe}"}&quot;,</p>
+          <p className="text-[#62626f] ml-8">&quot;https://your-domain.com/api/v1/predictions&quot;,</p>
           <p className="text-[#62626f] ml-8">headers={"{"}&#34;x-api-key&#34;: &#34;YOUR_BOT_API_KEY&#34;{"}"},</p>
           <p className="text-[#62626f] ml-8">json=data,</p>
           <p className="text-[#62626f] ml-8">timeout=10</p>
@@ -73,18 +63,16 @@ export default function AdminSettingsPage() {
         </div>
       </div>
 
-      {/* MongoDB collections */}
+      {/* MongoDB collection */}
       <div className="card p-6">
-        <h2 className="text-sm font-bold uppercase tracking-wider text-[#62626f] mb-4">MongoDB Collections</h2>
+        <h2 className="text-sm font-bold uppercase tracking-wider text-[#62626f] mb-4">MongoDB</h2>
         <p className="text-sm text-[#a0a0ab] mb-4">
-          All three bots share the same database and write into their own collection:
+          The bot writes directly to MongoDB — this app reads from the same database and collection:
         </p>
         <div className="space-y-2 text-xs font-mono">
           {[
             { key: "xau_dashboard", desc: "Database name (MONGODB_DATABASE)" },
-            { key: "predictions_m15", desc: "M15 bot predictions" },
-            { key: "predictions_h1", desc: "H1 bot predictions" },
-            { key: "predictions_h4", desc: "H4 bot predictions" },
+            { key: "predictions_m15", desc: "Prediction documents (matches bot_m15/config.py's MONGO_COLLECTION)" },
           ].map(c => (
             <div key={c.key} className="flex items-start gap-3 py-2 border-b border-white/[0.04] last:border-0">
               <span className="text-amber-400 min-w-0 flex-shrink-0">{c.key}</span>

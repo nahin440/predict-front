@@ -4,7 +4,6 @@ import Prediction from "@/models/Prediction";
 import { getAuthUser } from "@/lib/auth/helpers";
 
 const PREMIUM_ROLES = ["ADMIN", "DEVELOPER", "PREMIUM_USER"];
-const PREMIUM_PLANS = ["trader", "pro", "premium", "enterprise"];
 
 export async function GET(req: NextRequest) {
   try {

@@ -4,15 +4,10 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth/AuthContext";
-import TimeframeTabs, { Timeframe, TIMEFRAME_META } from "@/components/predictions/TimeframeTabs";
 
-// How often each timeframe's bot posts a new prediction — drives the
-// countdown ring and the auto-refresh interval.
-const REFRESH_MS: Record<Timeframe, number> = {
-  m15: 900_000,   // 15 min
-  h1: 3_600_000,  // 1 hour
-  h4: 14_400_000, // 4 hours
-};
+// M15 bot posts a new prediction every 15 minutes at :00/:15/:30/:45 UTC —
+// drives the countdown ring and the auto-refresh interval.
+const REFRESH_SECONDS = 900;
 
 type Prediction = Record<string, unknown>;
 
@@ -44,36 +39,32 @@ function LockedBlur({ children, label }: { children: React.ReactNode; label: str
 
 export default function PredictionsPage() {
   const { user, token } = useAuth();
-  const [timeframe, setTimeframe] = useState<Timeframe>("m15");
   const [pred, setPred] = useState<Prediction | null>(null);
   const [history, setHistory] = useState<Prediction[]>([]);
   const [loading, setLoading] = useState(true);
-  const [countdown, setCountdown] = useState(REFRESH_MS.m15 / 1000);
+  const [countdown, setCountdown] = useState(REFRESH_SECONDS);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const isPremium = user ? (isPremiumRole(user.role) || user.subscription?.plan !== "free") : false;
-  const refreshSeconds = REFRESH_MS[timeframe] / 1000;
 
-  const fetchData = useCallback(async (tf: Timeframe) => {
+  const fetchData = useCallback(async () => {
     const headers: Record<string, string> = {};
     if (token) headers["Authorization"] = `Bearer ${token}`;
     try {
       const [pRes, hRes] = await Promise.all([
-        fetch(`/api/predictions/${tf}/current`, { headers }),
-        fetch(`/api/predictions/${tf}/history?limit=15`, { headers })
+        fetch("/api/predictions/current", { headers }),
+        fetch("/api/predictions/history?limit=15", { headers })
       ]);
       if (pRes.ok) { const d = await pRes.json(); setPred(d.data); } else { setPred(null); }
       if (hRes.ok) { const d = await hRes.json(); setHistory(d.data || []); } else { setHistory([]); }
     } catch { /* silent */ } finally { setLoading(false); }
+    setCountdown(REFRESH_SECONDS);
   }, [token]);
 
-  // Switching timeframe: reload data for the new tab and reset the countdown.
   useEffect(() => {
-    setLoading(true);
-    fetchData(timeframe);
-    setCountdown(REFRESH_MS[timeframe] / 1000);
-    timerRef.current = setInterval(() => fetchData(timeframe), REFRESH_MS[timeframe]);
+    fetchData();
+    timerRef.current = setInterval(fetchData, REFRESH_SECONDS * 1000);
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [timeframe, fetchData]);
+  }, [fetchData]);
 
   useEffect(() => {
     const t = setInterval(() => setCountdown(c => c > 0 ? c - 1 : 0), 1000);
@@ -82,7 +73,7 @@ export default function PredictionsPage() {
 
   const min = Math.floor(countdown / 60);
   const sec = countdown % 60;
-  const pct = ((refreshSeconds - countdown) / refreshSeconds) * 100;
+  const pct = ((REFRESH_SECONDS - countdown) / REFRESH_SECONDS) * 100;
 
   const conf = pred?.confluence as Record<string, unknown> | undefined;
   const regime = pred?.regime as Record<string, unknown> | undefined;
@@ -96,6 +87,12 @@ export default function PredictionsPage() {
   const isUp = dir === "UP" && !skip;
   const signalColor = skip ? "var(--skip)" : isUp ? "var(--up)" : "var(--down)";
   const signalText = skip ? "⏸ SKIP" : isUp ? "▲ LONG" : "▼ SHORT";
+
+  // Expert-only nested objects (see risk_engine.py's assess() / trailing_stop_params() /
+  // estimate_drawdown_probability() / assess_spread() for exact source shapes)
+  const trailing = risk?.trailing as Record<string, number> | undefined;
+  const drawdown = risk?.drawdown as Record<string, number> | undefined;
+  const spreadDetail = risk?.spread as Record<string, unknown> | undefined;
 
   return (
     <main style={{ background: "var(--ink)", minHeight: "100dvh", overflowX: "hidden" }}>
@@ -113,12 +110,9 @@ export default function PredictionsPage() {
           <h1 className="animate-fade-up d1" style={{ fontFamily: "var(--font-syne)", fontWeight: 800, fontSize: "clamp(26px,4.5vw,44px)", letterSpacing: "-0.03em", lineHeight: 1.05, marginBottom: 8 }}>
             XAUUSD Signal Intelligence
           </h1>
-          <p className="animate-fade-up d2" style={{ fontFamily: "var(--font-space-grotesk)", fontSize: "clamp(12px,2vw,15px)", color: "var(--fog)", maxWidth: 480, marginBottom: 18 }}>
-            {TIMEFRAME_META[timeframe].sublabel} predictions from our ensemble ML pipeline.
+          <p className="animate-fade-up d2" style={{ fontFamily: "var(--font-space-grotesk)", fontSize: "clamp(12px,2vw,15px)", color: "var(--fog)", maxWidth: 480 }}>
+            Updated every 15 minutes by our ensemble ML pipeline.
           </p>
-          <div className="animate-fade-up d2">
-            <TimeframeTabs active={timeframe} onChange={setTimeframe} />
-          </div>
         </div>
       </div>
 
@@ -140,7 +134,7 @@ export default function PredictionsPage() {
                 {min}:{sec.toString().padStart(2, "0")}
               </span>
             </div>
-            <button onClick={() => fetchData(timeframe)} className="btn btn-secondary btn-xs">↻</button>
+            <button onClick={fetchData} className="btn btn-secondary btn-xs">↻</button>
             {!isPremium && <Link href="/pricing" className="btn btn-primary btn-xs" style={{ textDecoration: "none" }}>✦ Go Pro</Link>}
           </div>
         </div>
@@ -171,7 +165,10 @@ export default function PredictionsPage() {
                 )}
 
                 <div>
-                  <div style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 9, color: "var(--slate)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8 }}>HTF Alignment</div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
+                    <span style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 9, color: "var(--slate)", textTransform: "uppercase", letterSpacing: "0.1em" }}>HTF Alignment</span>
+                    <span style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 10, color: "var(--fog)" }}>{(pred.bull_htf_count as number) ?? (4 - ((pred.bear_htf_count as number) || 0))}/4 bullish</span>
+                  </div>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 6 }}>
                     {["M5","M15","H1","H4"].map((tf, i) => {
                       const bearCount = pred.bear_htf_count as number || 0;
@@ -249,6 +246,7 @@ export default function PredictionsPage() {
                   <MetricBox label="Hurst" value={(regime?.hurst as number)?.toFixed(3) || "—"} />
                   <MetricBox label="+DI" value={(regime?.plus_di as number)?.toFixed(1) || "—"} color="var(--up)" />
                   <MetricBox label="-DI" value={(regime?.minus_di as number)?.toFixed(1) || "—"} color="var(--down)" />
+                  <MetricBox label="RSI" value={(pred.rsi as number)?.toFixed(1) || "—"} color={(pred.rsi as number) < 30 ? "var(--up)" : (pred.rsi as number) > 70 ? "var(--down)" : "var(--paper)"} />
                   <MetricBox label="Vol State" value={regime?.vol_state as string || "—"} />
                   <MetricBox label="ATR" value={(regime?.atr as number)?.toFixed(2) || "—"} />
                 </div>
@@ -415,11 +413,221 @@ export default function PredictionsPage() {
               </div>
             )}
 
+            {/* ═══════════════════════════════════════════════════════════════
+                EXPERT ANALYSIS — full trade-mechanics detail for experienced
+                traders. Everything here is about the TRADE (risk math,
+                structure, execution cost) — deliberately excludes model/
+                prediction internals (calibration status, raw model votes
+                breakdown, uncertainty flags), which stay out of this page
+                entirely so the page never undermines trust in the signal
+                shown above.
+               ═══════════════════════════════════════════════════════════ */}
+            {isPremium && pred && (
+              <div className="card" style={{ padding: 0, overflow: "hidden" }}>
+                <div style={{ padding: "16px clamp(16px,4vw,24px)", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ fontSize: 16 }}>🎓</span>
+                  <div>
+                    <div style={{ fontFamily: "var(--font-syne)", fontSize: 15, fontWeight: 700 }}>Expert Analysis</div>
+                    <div style={{ fontFamily: "var(--font-space-grotesk)", fontSize: 11, color: "var(--slate)" }}>Full trade mechanics — position risk, structure, and execution detail</div>
+                  </div>
+                </div>
+
+                <div style={{ padding: "20px clamp(16px,4vw,24px)", display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 20 }} className="pred-grid-3">
+
+                  {/* Trade Outcome Probabilities */}
+                  <div>
+                    <div style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 10, color: "var(--slate)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 12 }}>Outcome Probabilities</div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                      {[
+                        { l: "Invalidation Level", v: risk?.invalidation != null ? `$${(risk.invalidation as number).toFixed(2)}` : "—", color: "var(--slate)" },
+                        { l: "TP Probability", v: risk?.tp_prob != null ? `${((risk.tp_prob as number) * 100).toFixed(0)}%` : "—", color: "var(--up)" },
+                        { l: "SL Probability", v: risk?.sl_prob != null ? `${((risk.sl_prob as number) * 100).toFixed(0)}%` : "—", color: "var(--down)" },
+                        { l: "EV %", v: risk?.ev_pct != null ? `${(risk.ev_pct as number).toFixed(3)}%` : "—", color: (risk?.ev_pct as number) > 0 ? "var(--up)" : "var(--down)" },
+                        { l: "Positive EV?", v: risk?.positive_ev ? "YES" : "NO", color: risk?.positive_ev ? "var(--up)" : "var(--slate)" },
+                        { l: "RR Meets Min", v: risk?.rr_meets_minimum ? "YES" : "NO", color: risk?.rr_meets_minimum ? "var(--up)" : "var(--slate)" },
+                        { l: "EV Meets Min", v: risk?.ev_meets_minimum ? "YES" : "NO", color: risk?.ev_meets_minimum ? "var(--up)" : "var(--slate)" },
+                        { l: "RR Gate Passed", v: pred.rr_ok ? "YES" : "NO", color: pred.rr_ok ? "var(--up)" : "var(--slate)" },
+                        { l: "EV Gate Passed", v: pred.ev_ok ? "YES" : "NO", color: pred.ev_ok ? "var(--up)" : "var(--slate)" },
+                        { l: "Drawdown Before TP", v: drawdown?.drawdown_sequence_prob != null ? `${(drawdown.drawdown_sequence_prob * 100).toFixed(0)}%` : "—", color: "var(--gold)" },
+                      ].map(m => (
+                        <div key={m.l} style={{ display: "flex", justifyContent: "space-between", padding: "5px 0", borderBottom: "1px solid rgba(255,255,255,0.04)", gap: 8 }}>
+                          <span style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 10, color: "var(--slate)", whiteSpace: "nowrap" }}>{m.l}</span>
+                          <span style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 11, color: m.color, overflow: "hidden", textOverflow: "ellipsis", textAlign: "right" }}>{m.v}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div style={{ marginTop: 16 }}>
+                      <div style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 9, color: "var(--slate)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8 }}>Execution Cost</div>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 4 }}>
+                        {[
+                          { l: "Spread", v: spreadDetail?.spread_points != null ? `${(spreadDetail.spread_points as number).toFixed(1)}pts` : "—" },
+                          { l: "Spread % ATR", v: spreadDetail?.spread_pct_atr != null ? `${(spreadDetail.spread_pct_atr as number).toFixed(0)}%` : "—" },
+                          { l: "Spread/ATR Ratio", v: pred.spread_atr_ratio != null ? (pred.spread_atr_ratio as number).toFixed(3) : "—" },
+                          { l: "Slippage", v: pred.slippage_points != null ? `${(pred.slippage_points as number).toFixed(1)}pts` : "—" },
+                          { l: "Total Cost", v: pred.total_cost_points != null ? `${(pred.total_cost_points as number).toFixed(1)}pts` : "—" },
+                          { l: "Spread Wide?", v: pred.spread_is_wide ? "YES" : "NO" },
+                          { l: "Spread Extreme?", v: pred.spread_is_extreme ? "YES" : "NO" },
+                          { l: "Exec Score", v: pred.exec_quality_score != null ? (pred.exec_quality_score as number).toFixed(2) : "—" },
+                          { l: "Exec Model Used?", v: pred.exec_model_used ? "YES" : "NO" },
+                          { l: "Exec Quality OK?", v: pred.exec_quality_ok ? "YES" : "NO" },
+                        ].map(m => (
+                          <div key={m.l} style={{ padding: "4px 8px", borderRadius: 6, background: "var(--graphite)", display: "flex", justifyContent: "space-between", gap: 4, minWidth: 0 }}>
+                            <span style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 9, color: "var(--slate)" }}>{m.l}</span>
+                            <span style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 10, color: "var(--ash)" }}>{m.v}</span>
+                          </div>
+                        ))}
+                      </div>
+                      {Boolean(spreadDetail?.warning) && (
+                        <div style={{ marginTop: 8, fontFamily: "var(--font-space-grotesk)", fontSize: 11, color: "var(--gold)" }}>⚠ {spreadDetail?.warning as string}</div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Deeper Structure */}
+                  <div>
+                    <div style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 10, color: "var(--slate)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 12 }}>Structure Detail</div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                      {structure && [
+                        { l: "Support Distance", v: `${(structure.support_distance_atr as number)?.toFixed(2)} ATR` },
+                        { l: "Resistance Distance", v: `${(structure.resistance_distance_atr as number)?.toFixed(2)} ATR` },
+                        { l: "Structure Bias", v: `${(structure.structure_bias_score as number)?.toFixed(0)}/100` },
+                        { l: "At Resistance?", v: pred.at_resistance ? "YES" : "NO" },
+                        { l: "At Support?", v: pred.at_support ? "YES" : "NO" },
+                        { l: "S/R Conflict?", v: pred.sr_conflict ? "YES" : "NO" },
+                        { l: "At S/R Level?", v: pred.sr_at_level ? "YES" : "NO" },
+                        { l: "S/R Position Score", v: pred.sr_position_score != null ? `${(pred.sr_position_score as number).toFixed(0)}/100` : "—" },
+                        { l: "M5 CHoCH Type", v: (structure.m5_choch_type as string) || "—" },
+                        { l: "H1 BOS Type", v: (structure.h1_bos_type as string) || "—" },
+                        { l: "FVG Distance", v: `${(structure.fvg_distance_atr as number)?.toFixed(2)} ATR` },
+                        { l: "FVG Bull / Bear Count", v: `${structure.fvg_bull_count ?? 0} / ${structure.fvg_bear_count ?? 0}` },
+                        { l: "OB Distance", v: `${(structure.ob_distance_atr as number)?.toFixed(2)} ATR` },
+                        { l: "Liquidity Pressure", v: `${(structure.liquidity_pressure_score as number)?.toFixed(0)}` },
+                        { l: "Distance to Liquidity", v: `${(structure.distance_to_liquidity_atr as number)?.toFixed(2)} ATR` },
+                      ].map(m => (
+                        <div key={m.l} style={{ display: "flex", justifyContent: "space-between", padding: "5px 0", borderBottom: "1px solid rgba(255,255,255,0.04)", gap: 8 }}>
+                          <span style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 10, color: "var(--slate)", whiteSpace: "nowrap" }}>{m.l}</span>
+                          <span style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 11, color: "var(--paper)", overflow: "hidden", textOverflow: "ellipsis", textAlign: "right" }}>{m.v || "—"}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div style={{ marginTop: 16 }}>
+                      <div style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 9, color: "var(--slate)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8 }}>Trailing Stop</div>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 4 }}>
+                        {[
+                          { l: "Activates After", v: trailing?.activation_distance != null ? `$${trailing.activation_distance.toFixed(2)}` : "—" },
+                          { l: "Step Size", v: trailing?.trail_step != null ? `$${trailing.trail_step.toFixed(2)}` : "—" },
+                        ].map(m => (
+                          <div key={m.l} style={{ padding: "4px 8px", borderRadius: 6, background: "var(--graphite)", display: "flex", justifyContent: "space-between", gap: 4, minWidth: 0 }}>
+                            <span style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 9, color: "var(--slate)" }}>{m.l}</span>
+                            <span style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 10, color: "var(--ash)" }}>{m.v}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div style={{ marginTop: 16 }}>
+                      <div style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 9, color: "var(--slate)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8 }}>Trend Alignment</div>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 4 }}>
+                        {[
+                          { l: "Bull HTF Count", v: pred.bull_htf_count != null ? `${pred.bull_htf_count}/4` : "—" },
+                          { l: "HTF Aligned?", v: pred.htf_ok ? "YES" : "NO" },
+                          { l: "TF Trend Score", v: pred.tf_trend_score != null ? (pred.tf_trend_score as number).toFixed(3) : "—" },
+                          { l: "TF Agreement", v: pred.tf_agreement != null ? `${pred.tf_agreement}` : "—" },
+                        ].map(m => (
+                          <div key={m.l} style={{ padding: "4px 8px", borderRadius: 6, background: "var(--graphite)", display: "flex", justifyContent: "space-between", gap: 4, minWidth: 0 }}>
+                            <span style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 9, color: "var(--slate)" }}>{m.l}</span>
+                            <span style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 10, color: "var(--ash)" }}>{m.v}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Wave, Fib Extensions, Session/Regime detail */}
+                  <div>
+                    <div style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 10, color: "var(--slate)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 12 }}>Wave &amp; Extensions</div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 7, marginBottom: 16 }}>
+                      {[
+                        { l: "Elliott Wave", v: (pred.wave_pattern as string) || "—" },
+                        { l: "Wave Direction", v: (pred.wave_direction as string) || "—" },
+                        { l: "Wave Count", v: pred.wave_count != null ? String(pred.wave_count) : "—" },
+                        { l: "Fib Trend Direction", v: (pred.fib_trend_direction as string) || "—" },
+                        { l: "Fib Ext 1.272", v: fib?.fib_1272 != null ? `$${fib.fib_1272.toFixed(2)}` : "—" },
+                        { l: "Fib Ext 1.618", v: fib?.fib_1618 != null ? `$${fib.fib_1618.toFixed(2)}` : "—" },
+                      ].map(m => (
+                        <div key={m.l} style={{ display: "flex", justifyContent: "space-between", padding: "5px 0", borderBottom: "1px solid rgba(255,255,255,0.04)", gap: 8 }}>
+                          <span style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 10, color: "var(--slate)", whiteSpace: "nowrap" }}>{m.l}</span>
+                          <span style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 11, color: "var(--paper)", overflow: "hidden", textOverflow: "ellipsis", textAlign: "right" }}>{m.v}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 9, color: "var(--slate)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8 }}>Session &amp; Stability</div>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 4 }}>
+                      {[
+                        { l: "Session Quality", v: (pred.session_quality as string) || "—" },
+                        { l: "Stability Score", v: pred.stability_score != null ? (pred.stability_score as number).toFixed(2) : "—" },
+                        { l: "Stable?", v: pred.is_stable ? "YES" : "NO" },
+                        { l: "Trend Persist", v: (regime?.trend_persist as number)?.toFixed(2) ?? "—" },
+                        { l: "Variance Ratio", v: (regime?.var_ratio as number)?.toFixed(2) ?? "—" },
+                        { l: "ATR Percentile", v: pred.atr_percentile != null ? `${(pred.atr_percentile as number).toFixed(0)}%` : "—" },
+                      ].map(m => (
+                        <div key={m.l} style={{ padding: "4px 8px", borderRadius: 6, background: "var(--graphite)", display: "flex", justifyContent: "space-between", gap: 4, minWidth: 0 }}>
+                          <span style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 9, color: "var(--slate)" }}>{m.l}</span>
+                          <span style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 10, color: "var(--ash)" }}>{m.v}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div style={{ marginTop: 16 }}>
+                      <div style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 9, color: "var(--slate)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8 }}>Macro Adjustment</div>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 4 }}>
+                        {[
+                          { l: "Macro Adj.", v: pred.macro_adj != null ? (pred.macro_adj as number).toFixed(1) : "—" },
+                          { l: "10Y-2Y Spread", v: pred.yield_spread != null ? (pred.yield_spread as number).toFixed(3) : "—" },
+                        ].map(m => (
+                          <div key={m.l} style={{ padding: "4px 8px", borderRadius: 6, background: "var(--graphite)", display: "flex", justifyContent: "space-between", gap: 4, minWidth: 0 }}>
+                            <span style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 9, color: "var(--slate)" }}>{m.l}</span>
+                            <span style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 10, color: "var(--ash)" }}>{m.v}</span>
+                          </div>
+                        ))}
+                      </div>
+                      {Boolean(pred.macro_reason) && (
+                        <div style={{ marginTop: 6, fontFamily: "var(--font-space-grotesk)", fontSize: 10, color: "var(--slate)", lineHeight: 1.4 }}>{String(pred.macro_reason)}</div>
+                      )}
+                    </div>
+
+                    <div style={{ marginTop: 16 }}>
+                      <div style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 9, color: "var(--slate)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 8 }}>Pattern Flags</div>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+                        {[
+                          { l: "Divergence", on: Boolean(pred.has_divergence) },
+                          { l: "Wyckoff", on: Boolean(pred.has_wyckoff) },
+                          { l: "Reversal Candle", on: Boolean(pred.has_reversal_pattern) },
+                        ].map(f => (
+                          <span key={f.l} style={{ padding: "4px 9px", borderRadius: 8, fontFamily: "var(--font-jetbrains-mono)", fontSize: 9, background: f.on ? "rgba(0,230,118,0.1)" : "var(--graphite)", color: f.on ? "var(--up)" : "var(--slate)", border: `1px solid ${f.on ? "rgba(0,230,118,0.25)" : "rgba(255,255,255,0.05)"}` }}>
+                            {f.on ? "✓" : "✗"} {f.l}
+                          </span>
+                        ))}
+                      </div>
+                      {Boolean((pred.active_patterns as string[])?.length) && (
+                        <div style={{ marginTop: 8, fontFamily: "var(--font-space-grotesk)", fontSize: 10, color: "var(--fog)" }}>
+                          {(pred.active_patterns as string[]).join(" · ")}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* History table */}
             {history.length > 0 && (
               <div className="card" style={{ overflow: "hidden" }}>
                 <div style={{ padding: "14px clamp(14px,4vw,20px)", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
-                  <span style={{ fontFamily: "var(--font-space-grotesk)", fontSize: 14, fontWeight: 600 }}>Recent {TIMEFRAME_META[timeframe].label} Predictions</span>
+                  <span style={{ fontFamily: "var(--font-space-grotesk)", fontSize: 14, fontWeight: 600 }}>Recent Predictions</span>
                   {!isPremium && <Link href="/pricing" style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 10, color: "var(--gold)", textDecoration: "none" }}>Unlock full history →</Link>}
                 </div>
                 <div className="table-wrap">
@@ -472,7 +680,7 @@ export default function PredictionsPage() {
           </div>
         ) : (
           <div className="card" style={{ padding: "56px 24px", textAlign: "center" }}>
-            <p style={{ fontFamily: "var(--font-space-grotesk)", fontSize: 15, color: "var(--fog)" }}>No {TIMEFRAME_META[timeframe].label} prediction data yet. Your Python bot will post signals here automatically.</p>
+            <p style={{ fontFamily: "var(--font-space-grotesk)", fontSize: 15, color: "var(--fog)" }}>No prediction data yet. Your Python bot will post signals here automatically.</p>
           </div>
         )}
       </div>

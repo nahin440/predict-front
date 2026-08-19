@@ -4,19 +4,14 @@ import { useEffect, useState } from "react";
 import { IPrediction } from "@/types";
 import { formatDate } from "@/lib/utils";
 import Link from "next/link";
-import TimeframeTabs, { Timeframe } from "@/components/predictions/TimeframeTabs";
 
 export default function PredictionsHistoryPage() {
   const { token } = useAuth();
-  const [timeframe, setTimeframe] = useState<Timeframe>("m15");
   const [predictions, setPredictions] = useState<IPrediction[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState({ total: 0, pages: 1 });
   const [isPremium, setIsPremium] = useState(false);
-
-  // Reset back to page 1 whenever the timeframe changes
-  useEffect(() => { setPage(1); }, [timeframe]);
 
   useEffect(() => {
     async function fetchHistory() {
@@ -24,7 +19,7 @@ export default function PredictionsHistoryPage() {
       const headers: Record<string, string> = { "Content-Type": "application/json" };
       if (token) headers["Authorization"] = `Bearer ${token}`;
       try {
-        const res = await fetch(`/api/predictions/${timeframe}/history?page=${page}&limit=20`, { headers });
+        const res = await fetch(`/api/predictions/history?page=${page}&limit=20`, { headers });
         const data = await res.json();
         if (data.success) {
           setPredictions(data.data);
@@ -36,21 +31,19 @@ export default function PredictionsHistoryPage() {
       }
     }
     fetchHistory();
-  }, [page, timeframe, token]);
+  }, [page, token]);
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between flex-wrap gap-4">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-black tracking-tight">Prediction History</h1>
-          <p className="text-sm text-[#62626f] mt-1">{pagination.total} total {timeframe.toUpperCase()} predictions</p>
+          <p className="text-sm text-[#62626f] mt-1">{pagination.total} total predictions</p>
         </div>
         {!isPremium && (
           <Link href="/pricing" className="btn btn-primary btn-sm">Unlock Full History</Link>
         )}
       </div>
-
-      <TimeframeTabs active={timeframe} onChange={setTimeframe} size="sm" />
 
       {loading ? (
         <div className="space-y-3">

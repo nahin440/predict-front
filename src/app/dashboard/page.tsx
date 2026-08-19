@@ -2,7 +2,6 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth/AuthContext";
-import TimeframeTabs, { Timeframe } from "@/components/predictions/TimeframeTabs";
 
 type Pred = Record<string, unknown>;
 type Stats = { totalPredictions: number; totalTrades: number; skippedTrades: number; winRate: number; avgConfidence: number; bullSignals: number; bearSignals: number };
@@ -10,42 +9,33 @@ type Stats = { totalPredictions: number; totalTrades: number; skippedTrades: num
 const PREMIUM_PLANS = ["pro", "premium", "enterprise", "trader"];
 const PREMIUM_ROLES = ["ADMIN", "DEVELOPER", "PREMIUM_USER"];
 
-// Refresh cadence matches each bot's own schedule.
-const REFRESH_MS: Record<Timeframe, number> = {
-  m15: 900_000,
-  h1: 3_600_000,
-  h4: 14_400_000,
-};
-
 export default function DashboardPage() {
   const { user, token } = useAuth();
-  const [timeframe, setTimeframe] = useState<Timeframe>("m15");
   const [pred, setPred] = useState<Pred | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const isPremium = user ? (PREMIUM_ROLES.includes(user.role) || PREMIUM_PLANS.includes(user.subscription?.plan || "")) : false;
   const str = (v: unknown): string => v == null ? "" : String(v);
 
-  const fetchData = useCallback(async (tf: Timeframe) => {
+  const fetchData = useCallback(async () => {
     const headers: Record<string, string> = {};
     if (token) headers["Authorization"] = `Bearer ${token}`;
     try {
       const [pRes, sRes] = await Promise.all([
-        fetch(`/api/predictions/${tf}/current`, { headers }),
-        fetch(`/api/predictions/${tf}/stats`)
+        fetch("/api/predictions/current", { headers }),
+        fetch("/api/predictions/stats")
       ]);
-      if (pRes.ok) setPred((await pRes.json()).data); else setPred(null);
-      if (sRes.ok) setStats((await sRes.json()).data); else setStats(null);
+      if (pRes.ok) setPred((await pRes.json()).data);
+      if (sRes.ok) setStats((await sRes.json()).data);
     } catch { /* silent */ } finally { setLoading(false); }
   }, [token]);
 
   useEffect(() => {
-    setLoading(true);
-    fetchData(timeframe);
-    // Refresh on the selected timeframe's own bot schedule
-    const interval = setInterval(() => fetchData(timeframe), REFRESH_MS[timeframe]);
+    fetchData();
+    // Refresh every 15 minutes matching bot schedule
+    const interval = setInterval(fetchData, 900_000);
     return () => clearInterval(interval);
-  }, [timeframe, fetchData]);
+  }, [fetchData]);
 
   const skip = pred?.should_skip as boolean;
   const dir = pred?.direction as string;
@@ -64,18 +54,13 @@ export default function DashboardPage() {
             Welcome back{user?.name ? `, ${user.name.split(" ")[0]}` : ""}
           </h1>
           <p style={{ fontFamily: "var(--font-space-grotesk)", fontSize: 13, color: "var(--fog)" }}>
-            {timeframe.toUpperCase()} signals · {pred ? `Last: ${new Date(pred.timestamp as string || pred.saved_at as string).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })} UTC` : "Loading…"}
+            Signal updates every 15 minutes · {pred ? `Last: ${new Date(pred.timestamp as string || pred.saved_at as string).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })} UTC` : "Loading…"}
           </p>
         </div>
         <div style={{ display: "flex", gap: 10 }}>
           {!isPremium && <Link href="/pricing" className="btn btn-primary btn-sm" style={{ textDecoration: "none" }}>✦ Upgrade to Trader</Link>}
-          <button onClick={() => fetchData(timeframe)} className="btn btn-secondary btn-sm">↻ Refresh</button>
+          <button onClick={fetchData} className="btn btn-secondary btn-sm">↻ Refresh</button>
         </div>
-      </div>
-
-      {/* Timeframe tabs */}
-      <div style={{ marginBottom: 20 }}>
-        <TimeframeTabs active={timeframe} onChange={setTimeframe} size="sm" />
       </div>
 
       {/* Stats */}
@@ -204,7 +189,7 @@ export default function DashboardPage() {
         </div>
       ) : (
         <div className="card" style={{ padding: 48, textAlign: "center", marginBottom: 20 }}>
-          <p style={{ fontFamily: "var(--font-space-grotesk)", color: "var(--fog)" }}>No {timeframe.toUpperCase()} prediction data yet. Your bot will push signals here automatically.</p>
+          <p style={{ fontFamily: "var(--font-space-grotesk)", color: "var(--fog)" }}>No prediction data yet. Your bot will push signals here automatically.</p>
         </div>
       )}
 

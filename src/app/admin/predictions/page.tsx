@@ -3,23 +3,19 @@ import { useAuth } from "@/lib/auth/AuthContext";
 import { useEffect, useState } from "react";
 import { IPrediction } from "@/types";
 import { formatDate } from "@/lib/utils";
-import TimeframeTabs, { Timeframe } from "@/components/predictions/TimeframeTabs";
 
 export default function AdminPredictionsPage() {
   const { token } = useAuth();
-  const [timeframe, setTimeframe] = useState<Timeframe>("m15");
   const [predictions, setPredictions] = useState<IPrediction[]>([]);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState({ total: 0, pages: 1 });
 
-  useEffect(() => { setPage(1); }, [timeframe]);
-
   useEffect(() => {
     async function fetchPredictions() {
       setLoading(true);
       try {
-        const res = await fetch(`/api/predictions/${timeframe}/history?page=${page}&limit=30`, {
+        const res = await fetch(`/api/predictions/history?page=${page}&limit=30`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         const data = await res.json();
@@ -27,16 +23,13 @@ export default function AdminPredictionsPage() {
       } catch { /* silent */ } finally { setLoading(false); }
     }
     fetchPredictions();
-  }, [page, timeframe, token]);
+  }, [page, token]);
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 animate-fade-in">
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div>
-          <h1 className="text-2xl font-black tracking-tight">Predictions Manager</h1>
-          <p className="text-sm text-[#62626f] mt-1">{pagination.total} total {timeframe.toUpperCase()} predictions in database</p>
-        </div>
-        <TimeframeTabs active={timeframe} onChange={setTimeframe} size="sm" />
+      <div>
+        <h1 className="text-2xl font-black tracking-tight">Predictions Manager</h1>
+        <p className="text-sm text-[#62626f] mt-1">{pagination.total} total predictions in database</p>
       </div>
 
       <div className="card overflow-hidden">

@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import connectDB from "@/lib/db/mongoose";
 import Prediction from "@/models/Prediction";
 
-export async function GET(_req: NextRequest) {
+export async function GET() {
   try {
     await connectDB();
 

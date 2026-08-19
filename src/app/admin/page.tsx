@@ -2,7 +2,6 @@
 import { useAuth } from "@/lib/auth/AuthContext";
 import { useEffect, useState } from "react";
 import { formatRelativeTime } from "@/lib/utils";
-import TimeframeTabs, { Timeframe } from "@/components/predictions/TimeframeTabs";
 
 interface AdminStats {
   totalUsers: number;
@@ -14,7 +13,6 @@ interface AdminStats {
 }
 
 export default function AdminDashboard() {
-  const [timeframe, setTimeframe] = useState<Timeframe>("m15");
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [latestPrediction, setLatestPrediction] = useState<Record<string, unknown> | null>(null);
   const { token } = useAuth();
@@ -22,13 +20,12 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     async function fetch_data() {
-      setLoading(true);
       const headers = { Authorization: `Bearer ${token}` };
       try {
         const [usersRes, predsRes, statsRes] = await Promise.all([
           fetch("/api/admin/users?limit=1", { headers }),
-          fetch(`/api/predictions/${timeframe}/current`, { headers }),
-          fetch(`/api/predictions/${timeframe}/stats`)
+          fetch("/api/predictions/current", { headers }),
+          fetch("/api/predictions/stats")
         ]);
         if (usersRes.ok) {
           const ud = await usersRes.json();
@@ -37,8 +34,6 @@ export default function AdminDashboard() {
         if (predsRes.ok) {
           const pd = await predsRes.json();
           setLatestPrediction(pd.data);
-        } else {
-          setLatestPrediction(null);
         }
         if (statsRes.ok) {
           const sd = await statsRes.json();
@@ -56,7 +51,7 @@ export default function AdminDashboard() {
       }
     }
     fetch_data();
-  }, [timeframe, token]);
+  }, [token]);
 
   const cards = [
     { label: "Total Users", value: stats?.totalUsers ?? "—", color: "text-white", icon: "👥" },
@@ -67,12 +62,9 @@ export default function AdminDashboard() {
 
   return (
     <div className="max-w-6xl mx-auto space-y-8 animate-fade-in">
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div>
-          <h1 className="text-2xl font-black tracking-tight">Admin Dashboard</h1>
-          <p className="text-sm text-[#62626f] mt-1">Platform overview and controls</p>
-        </div>
-        <TimeframeTabs active={timeframe} onChange={setTimeframe} size="sm" />
+      <div>
+        <h1 className="text-2xl font-black tracking-tight">Admin Dashboard</h1>
+        <p className="text-sm text-[#62626f] mt-1">Platform overview and controls</p>
       </div>
 
       {/* Stat cards */}
@@ -94,7 +86,7 @@ export default function AdminDashboard() {
         {/* Latest prediction */}
         <div className="card p-6">
           <div className="flex items-center justify-between mb-5">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-[#62626f]">Latest Signal · {timeframe.toUpperCase()}</h2>
+            <h2 className="text-sm font-bold uppercase tracking-wider text-[#62626f]">Latest Signal</h2>
             {latestPrediction && (
               <span className="text-xs font-mono text-[#62626f]">
                 {formatRelativeTime(latestPrediction.timestamp as string || latestPrediction.server_time as string)}
@@ -160,17 +152,15 @@ export default function AdminDashboard() {
         <h2 className="text-sm font-bold uppercase tracking-wider text-[#62626f] mb-4">Python Bot Integration</h2>
         <div className="space-y-3">
           <div className="p-4 rounded-xl bg-black/40 border border-white/[0.06] font-mono text-xs">
-            <p className="text-[#62626f] mb-2"># POST predictions from your Python bot (per timeframe):</p>
-            <p className="text-emerald-400">POST /api/v1/predictions?tf=m15</p>
-            <p className="text-emerald-400">POST /api/v1/predictions?tf=h1</p>
-            <p className="text-emerald-400">POST /api/v1/predictions?tf=h4</p>
-            <p className="text-[#a0a0ab] mt-2">Headers: x-api-key: {"{BOT_API_KEY}"}</p>
+            <p className="text-[#62626f] mb-2"># POST predictions from your Python bot:</p>
+            <p className="text-emerald-400">POST /api/v1/predictions</p>
+            <p className="text-[#a0a0ab]">Headers: x-api-key: {"{BOT_API_KEY}"}</p>
             <p className="text-[#a0a0ab]">Body: {"{"} ...prediction_json {"}"}</p>
           </div>
           <p className="text-xs text-[#62626f]">
-            Your MT5 bots write directly to MongoDB (<code className="text-amber-400">xau_dashboard</code> DB,
-            collections <code className="text-amber-400">predictions_m15</code> / <code className="text-amber-400">predictions_h1</code> / <code className="text-amber-400">predictions_h4</code>).
-            The <code className="text-amber-400">?tf=</code> query param above is only for the optional HTTP push endpoint — your API key is set in{" "}
+            Your MT5 bot writes directly to MongoDB (<code className="text-amber-400">xau_dashboard</code> DB,
+            collection <code className="text-amber-400">predictions_m15</code>). The HTTP endpoint above is only
+            for an optional push-based integration — your API key is set in{" "}
             <code className="text-amber-400">.env.local</code> as <code className="text-amber-400">BOT_API_KEY</code>.
           </p>
         </div>

@@ -1,15 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/db/mongoose";
 import Prediction from "@/models/Prediction";
-import { getAuthUser, canAccessPremium } from "@/lib/auth/helpers";
-
-const TRADER_FIELDS = ["confidence", "effective_confidence", "risk", "model_votes",
-  "macro_adjusted_conf", "raw_prob_up", "exec_quality_score"];
-
-const PRO_FIELDS = [...TRADER_FIELDS, "confluence", "structure", "fibonacci",
-  "pattern_details", "active_patterns", "fibonacci", "vix", "yield_10y",
-  "yield_change", "dxy_return", "pattern_confluence", "wave_pattern",
-  "all_hard_blocks", "all_soft_failures"];
+import { getAuthUser } from "@/lib/auth/helpers";
 
 export async function GET(req: NextRequest) {
   try {
