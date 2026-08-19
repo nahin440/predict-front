@@ -9,6 +9,12 @@ type Stats = { totalPredictions: number; totalTrades: number; skippedTrades: num
 const PREMIUM_PLANS = ["pro", "premium", "enterprise", "trader"];
 const PREMIUM_ROLES = ["ADMIN", "DEVELOPER", "PREMIUM_USER"];
 
+// Prediction timestamps are saved in UTC — traders here are in Bangladesh,
+// so display converts to Asia/Dhaka (matches /predictions page).
+function formatDhakaTime(dateLike: string | number | Date): string {
+  return new Date(dateLike).toLocaleTimeString("en-US", { timeZone: "Asia/Dhaka", hour: "2-digit", minute: "2-digit" });
+}
+
 export default function DashboardPage() {
   const { user, token } = useAuth();
   const [pred, setPred] = useState<Pred | null>(null);
@@ -54,7 +60,7 @@ export default function DashboardPage() {
             Welcome back{user?.name ? `, ${user.name.split(" ")[0]}` : ""}
           </h1>
           <p style={{ fontFamily: "var(--font-space-grotesk)", fontSize: 13, color: "var(--fog)" }}>
-            Signal updates every 15 minutes · {pred ? `Last: ${new Date(pred.timestamp as string || pred.saved_at as string).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })} UTC` : "Loading…"}
+            Signal updates every 15 minutes · {pred ? `Last: ${formatDhakaTime(pred.timestamp as string || pred.saved_at as string)} BD` : "Loading…"}
           </p>
         </div>
         <div style={{ display: "flex", gap: 10 }}>

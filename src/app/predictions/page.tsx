@@ -5,9 +5,61 @@ import Footer from "@/components/layout/Footer";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth/AuthContext";
 
-// M15 bot posts a new prediction every 15 minutes at :00/:15/:30/:45 UTC —
-// drives the countdown ring and the auto-refresh interval.
-const REFRESH_SECONDS = 900;
+// M15 bot posts a new prediction every 15 minutes at :00/:15/:30/:45 UTC
+// (see backend main.py's scheduling loop). Two things depend on that exact
+// schedule, both handled below instead of a naive setInterval from
+// page-load time:
+//
+// 1. Auto-fetch is aligned to the real marks (+20s buffer for the bot's
+//    save-to-Mongo latency) rather than counting down from whenever the
+//    page happened to load — otherwise a page opened at :07 would poll at
+//    :22/:37/... always chasing the actual data instead of catching it
+//    right after it lands.
+// 2. Staleness gate: if the most recent :00/:15/:30/:45 mark is more than
+//    1 minute in the past and we still don't have a prediction from at or
+//    after that mark, the bot missed its cycle (predictor.py's
+//    predict_now() returned None — a hard block, e.g. spread spike, no
+//    trade during the cycle — main.py's loop just `continue`s without
+//    saving). We show a distinct "conditions not favorable" state instead
+//    of silently leaving the previous cycle's now-stale prediction on
+//    screen looking current.
+const MARK_MINUTES = [0, 15, 30, 45];
+const POST_MARK_BUFFER_MS = 20_000; // bot save latency after the mark
+const STALE_GRACE_MS = 60_000;      // "16th minute" — 1 min past the mark
+
+// Prediction timestamps are saved in UTC (see mongo_saver.py / predictor.py's
+// `timestamp`/`saved_at`); traders here are in Bangladesh, so every
+// timestamp shown on this page is rendered in Asia/Dhaka regardless of the
+// browser's own locale/timezone.
+const DHAKA_TZ = "Asia/Dhaka";
+
+function mostRecentMarkUTC(now: Date): Date {
+  const mark = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), 0, 0, 0));
+  const currentMinute = now.getUTCMinutes();
+  // 0 is always in MARK_MINUTES, so this is never empty — the current hour's
+  // own :00 mark is always a valid fallback.
+  const lastPassedMinute = Math.max(...MARK_MINUTES.filter(m => m <= currentMinute));
+  mark.setUTCMinutes(lastPassedMinute);
+  return mark;
+}
+
+function nextMarkPlusBufferUTC(now: Date): Date {
+  const sorted = [...MARK_MINUTES];
+  const currentMinute = now.getUTCMinutes();
+  const upcoming = sorted.find(m => m > currentMinute);
+  const next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), 0, 0, 0));
+  if (upcoming !== undefined) {
+    next.setUTCMinutes(upcoming);
+  } else {
+    next.setUTCHours(next.getUTCHours() + 1);
+    next.setUTCMinutes(sorted[0]);
+  }
+  return new Date(next.getTime() + POST_MARK_BUFFER_MS);
+}
+
+function formatDhaka(dateLike: string | number | Date, opts: Intl.DateTimeFormatOptions): string {
+  return new Date(dateLike).toLocaleString("en-US", { timeZone: DHAKA_TZ, ...opts });
+}
 
 type Prediction = Record<string, unknown>;
 
@@ -37,12 +89,25 @@ function LockedBlur({ children, label }: { children: React.ReactNode; label: str
   );
 }
 
+function StaleNotice({ nextCheckLabel }: { nextCheckLabel: string }) {
+  return (
+    <div className="card" style={{ padding: "48px 24px", textAlign: "center", borderColor: "rgba(245,166,35,0.15)" }}>
+      <p style={{ fontSize: 30, marginBottom: 14 }}>🌫️</p>
+      <h3 style={{ fontFamily: "var(--font-syne)", fontSize: 19, fontWeight: 700, marginBottom: 8, color: "var(--gold)" }}>Market Conditions Not Favorable Right Now</h3>
+      <p style={{ fontFamily: "var(--font-space-grotesk)", fontSize: 13, color: "var(--fog)", maxWidth: 440, margin: "0 auto" }}>
+        The AI didn&apos;t issue a fresh signal for this cycle — this happens when spread, volatility, or structure don&apos;t meet the bot&apos;s trade criteria. We&apos;re not showing the last signal since it no longer reflects the current market. This will update automatically the moment a new signal lands.
+      </p>
+      <p style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 10, color: "var(--slate)", marginTop: 16 }}>Next check {nextCheckLabel}</p>
+    </div>
+  );
+}
+
 export default function PredictionsPage() {
   const { user, token } = useAuth();
   const [pred, setPred] = useState<Prediction | null>(null);
   const [history, setHistory] = useState<Prediction[]>([]);
   const [loading, setLoading] = useState(true);
-  const [countdown, setCountdown] = useState(REFRESH_SECONDS);
+  const [now, setNow] = useState(() => new Date());
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const isPremium = user ? (isPremiumRole(user.role) || user.subscription?.plan !== "free") : false;
 
@@ -57,23 +122,50 @@ export default function PredictionsPage() {
       if (pRes.ok) { const d = await pRes.json(); setPred(d.data); } else { setPred(null); }
       if (hRes.ok) { const d = await hRes.json(); setHistory(d.data || []); } else { setHistory([]); }
     } catch { /* silent */ } finally { setLoading(false); }
-    setCountdown(REFRESH_SECONDS);
   }, [token]);
 
+  // Schedules the NEXT fetch for exactly (next :00/:15/:30/:45 mark + 20s),
+  // then re-schedules itself after that fetch completes — a self-adjusting
+  // chain of setTimeouts rather than a fixed setInterval, so it can never
+  // drift out of alignment with the bot's real schedule.
   useEffect(() => {
-    fetchData();
-    timerRef.current = setInterval(fetchData, REFRESH_SECONDS * 1000);
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+    let cancelled = false;
+    async function tick() {
+      await fetchData();
+      if (cancelled) return;
+      const delay = nextMarkPlusBufferUTC(new Date()).getTime() - Date.now();
+      timerRef.current = setTimeout(tick, Math.max(delay, 1000));
+    }
+    tick();
+    return () => {
+      cancelled = true;
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
   }, [fetchData]);
 
+  // Drives the countdown display and the staleness check — ticks every
+  // second purely off the clock, independent of the fetch chain above.
   useEffect(() => {
-    const t = setInterval(() => setCountdown(c => c > 0 ? c - 1 : 0), 1000);
+    const t = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(t);
   }, []);
 
-  const min = Math.floor(countdown / 60);
-  const sec = countdown % 60;
-  const pct = ((REFRESH_SECONDS - countdown) / REFRESH_SECONDS) * 100;
+  const nextFetchAt = nextMarkPlusBufferUTC(now);
+  const countdownMs = Math.max(nextFetchAt.getTime() - now.getTime(), 0);
+  const min = Math.floor(countdownMs / 60000);
+  const sec = Math.floor((countdownMs % 60000) / 1000);
+  const cycleMs = 15 * 60 * 1000;
+  const pct = 100 - (countdownMs / cycleMs) * 100;
+
+  // Staleness: compare the prediction's own timestamp against the most
+  // recent mark, not against when we last fetched — a fetch can succeed
+  // and still hand back a document from the previous cycle if the bot
+  // hasn't saved yet, so freshness has to be judged from the data itself.
+  const currentMark = mostRecentMarkUTC(now);
+  const predTimestamp = pred ? new Date((pred.timestamp as string) || (pred.saved_at as string)) : null;
+  const isFresh = predTimestamp ? predTimestamp.getTime() >= currentMark.getTime() : false;
+  const graceExpired = now.getTime() - currentMark.getTime() >= STALE_GRACE_MS;
+  const showStaleNotice = !loading && (!pred || (!isFresh && graceExpired));
 
   const conf = pred?.confluence as Record<string, unknown> | undefined;
   const regime = pred?.regime as Record<string, unknown> | undefined;
@@ -145,13 +237,17 @@ export default function PredictionsPage() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 14 }} className="grid-3-resp">
             {[1,2,3].map(i => <div key={i} className="skeleton" style={{ height: 300 }} />)}
           </div>
-        ) : pred ? (
+        ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            {showStaleNotice ? (
+              <StaleNotice nextCheckLabel={`in ${min}:${sec.toString().padStart(2, "0")}`} />
+            ) : pred ? (
+              <>
 
-            {/* Row 1: Signal + Confidence + Regime */}
-            <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr 1fr", gap: 14 }} className="pred-grid-3">
+                {/* Row 1: Signal + Confidence + Regime */}
+                <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr 1fr", gap: 14 }} className="pred-grid-3">
 
-              {/* Main signal card */}
+                  {/* Main signal card */}
               <div className="card" style={{ padding: "22px clamp(16px,4vw,28px)", borderColor: `${signalColor}30`, boxShadow: `0 0 40px ${signalColor}10, var(--glow-card)`, minWidth: 0 }}>
                 <div style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 10, color: "var(--slate)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 16 }}>Current Signal</div>
                 <div style={{ fontFamily: "var(--font-syne)", fontSize: "clamp(32px,7vw,48px)", fontWeight: 800, color: signalColor, lineHeight: 1, marginBottom: 8, wordBreak: "break-word" }}>{signalText}</div>
@@ -622,6 +718,8 @@ export default function PredictionsPage() {
                 </div>
               </div>
             )}
+              </>
+            ) : null}
 
             {/* History table */}
             {history.length > 0 && (
@@ -634,7 +732,7 @@ export default function PredictionsPage() {
                   <table className="data-table">
                     <thead>
                       <tr>
-                        <th>Time (UTC)</th>
+                        <th>Time (BD)</th>
                         <th>Price</th>
                         <th>Signal</th>
                         <th>Regime</th>
@@ -650,7 +748,7 @@ export default function PredictionsPage() {
                         return (
                           <tr key={i}>
                             <td style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 11, color: "var(--fog)", whiteSpace: "nowrap" }}>
-                              {new Date(h.timestamp as string || h.saved_at as string).toLocaleString("en-US", { month: "short", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false })}
+                              {formatDhaka(h.timestamp as string || h.saved_at as string, { month: "short", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false })}
                             </td>
                             <td style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 13, fontWeight: 500 }}>${(h.current_price as number)?.toFixed(2)}</td>
                             <td>
@@ -677,10 +775,6 @@ export default function PredictionsPage() {
                 </div>
               </div>
             )}
-          </div>
-        ) : (
-          <div className="card" style={{ padding: "56px 24px", textAlign: "center" }}>
-            <p style={{ fontFamily: "var(--font-space-grotesk)", fontSize: 15, color: "var(--fog)" }}>No prediction data yet. Your Python bot will post signals here automatically.</p>
           </div>
         )}
       </div>

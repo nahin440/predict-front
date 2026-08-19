@@ -270,8 +270,8 @@ export default function HeroSection({ prediction }: Props) {
         .hero-inner { position: relative; z-index: 2; width: 100%; }
         .hero-cols { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(32px, 6vw, 80px); align-items: center; width: 100%; }
         .hero-copy { min-width: 0; max-width: 100%; }
-        .hero-headline-wrap { position: relative; width: 100%; min-height: clamp(85px, 22vw, 165px); margin-bottom: clamp(16px,3vw,24px); overflow: hidden; }
-        .hero-headline-slide { position: absolute; top: 0; left: 0; width: 100%; transition: all 0.6s cubic-bezier(0.22,1,0.36,1); }
+        .hero-headline-wrap { position: relative; width: 100%; margin-bottom: clamp(16px,3vw,24px); display: grid; }
+        .hero-headline-slide { grid-area: 1 / 1; width: 100%; transition: opacity 0.6s cubic-bezier(0.22,1,0.36,1), transform 0.6s cubic-bezier(0.22,1,0.36,1); }
         .hero-h1 { font-weight: 800; letter-spacing: -0.04em; word-break: break-word; max-width: 100%; }
         .hero-live-badge { background: rgba(0,230,118,0.06); border: 1px solid rgba(0,230,118,0.25); color: var(--up); padding: 5px clamp(10px,2vw,14px); border-radius: 99px; }
         .hero-live-badge span { font-family: var(--font-jetbrains-mono); font-size: clamp(9px,1.8vw,10px); letter-spacing: 0.1em; white-space: nowrap; }
