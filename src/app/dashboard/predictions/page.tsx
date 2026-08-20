@@ -69,7 +69,7 @@ export default function PredictionsHistoryPage() {
                   return (
                     <tr key={p._id} className="hover:bg-white/[0.02] transition-colors">
                       <td className="px-4 py-3 text-xs font-mono text-[#a0a0ab] whitespace-nowrap">
-                        {formatDate(p.timestamp || p.server_time || p.saved_at)}
+                        {formatDate(p.timestamp || p.saved_at)}
                       </td>
                       <td className="px-4 py-3 font-mono font-semibold whitespace-nowrap">
                         ${p.current_price?.toFixed(2)}

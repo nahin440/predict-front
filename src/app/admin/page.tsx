@@ -89,7 +89,7 @@ export default function AdminDashboard() {
             <h2 className="text-sm font-bold uppercase tracking-wider text-[#62626f]">Latest Signal</h2>
             {latestPrediction && (
               <span className="text-xs font-mono text-[#62626f]">
-                {formatRelativeTime(latestPrediction.timestamp as string || latestPrediction.server_time as string)}
+                {formatRelativeTime(latestPrediction.timestamp as string || latestPrediction.saved_at as string)}
               </span>
             )}
           </div>

@@ -53,7 +53,7 @@ export default function AdminPredictionsPage() {
                 return (
                   <tr key={p._id} className="hover:bg-white/[0.02] transition-colors">
                     <td className="px-3 py-2 font-mono text-[#62626f] whitespace-nowrap">
-                      {formatDate(p.timestamp || p.server_time || p.saved_at)}
+                      {formatDate(p.timestamp || p.saved_at)}
                     </td>
                     <td className="px-3 py-2 font-mono font-semibold whitespace-nowrap">${p.current_price?.toFixed(2)}</td>
                     <td className="px-3 py-2">

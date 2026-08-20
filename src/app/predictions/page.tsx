@@ -4,6 +4,7 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth/AuthContext";
+import { formatDhakaDateTime } from "@/lib/utils";
 
 // M15 bot posts a new prediction every 15 minutes at :00/:15/:30/:45 UTC
 // (see backend main.py's scheduling loop). Two things depend on that exact
@@ -29,9 +30,9 @@ const STALE_GRACE_MS = 60_000;      // "16th minute" — 1 min past the mark
 
 // Prediction timestamps are saved in UTC (see mongo_saver.py / predictor.py's
 // `timestamp`/`saved_at`); traders here are in Bangladesh, so every
-// timestamp shown on this page is rendered in Asia/Dhaka regardless of the
-// browser's own locale/timezone.
-const DHAKA_TZ = "Asia/Dhaka";
+// timestamp shown on this page is rendered in Bangladesh time via the
+// shared formatDhakaDateTime() helper (fixed UTC+6 arithmetic — see
+// lib/utils for why this doesn't use Intl's timeZone option).
 
 function mostRecentMarkUTC(now: Date): Date {
   const mark = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), 0, 0, 0));
@@ -55,10 +56,6 @@ function nextMarkPlusBufferUTC(now: Date): Date {
     next.setUTCMinutes(sorted[0]);
   }
   return new Date(next.getTime() + POST_MARK_BUFFER_MS);
-}
-
-function formatDhaka(dateLike: string | number | Date, opts: Intl.DateTimeFormatOptions): string {
-  return new Date(dateLike).toLocaleString("en-US", { timeZone: DHAKA_TZ, ...opts });
 }
 
 type Prediction = Record<string, unknown>;
@@ -748,7 +745,7 @@ export default function PredictionsPage() {
                         return (
                           <tr key={i}>
                             <td style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 11, color: "var(--fog)", whiteSpace: "nowrap" }}>
-                              {formatDhaka(h.timestamp as string || h.saved_at as string, { month: "short", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false })}
+                              {formatDhakaDateTime(h.timestamp as string || h.saved_at as string)}
                             </td>
                             <td style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 13, fontWeight: 500 }}>${(h.current_price as number)?.toFixed(2)}</td>
                             <td>

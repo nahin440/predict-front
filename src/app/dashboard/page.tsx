@@ -2,18 +2,13 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { useAuth } from "@/lib/auth/AuthContext";
+import { formatDhakaTime } from "@/lib/utils";
 
 type Pred = Record<string, unknown>;
 type Stats = { totalPredictions: number; totalTrades: number; skippedTrades: number; winRate: number; avgConfidence: number; bullSignals: number; bearSignals: number };
 
 const PREMIUM_PLANS = ["pro", "premium", "enterprise", "trader"];
 const PREMIUM_ROLES = ["ADMIN", "DEVELOPER", "PREMIUM_USER"];
-
-// Prediction timestamps are saved in UTC — traders here are in Bangladesh,
-// so display converts to Asia/Dhaka (matches /predictions page).
-function formatDhakaTime(dateLike: string | number | Date): string {
-  return new Date(dateLike).toLocaleTimeString("en-US", { timeZone: "Asia/Dhaka", hour: "2-digit", minute: "2-digit" });
-}
 
 export default function DashboardPage() {
   const { user, token } = useAuth();
