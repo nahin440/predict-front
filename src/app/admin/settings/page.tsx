@@ -72,7 +72,7 @@ export default function AdminSettingsPage() {
         <div className="space-y-2 text-xs font-mono">
           {[
             { key: "xau_dashboard", desc: "Database name (MONGODB_DATABASE)" },
-            { key: "predictions_m15", desc: "Prediction documents (matches bot_m15/config.py's MONGO_COLLECTION)" },
+            { key: "predgold15", desc: "Prediction documents (matches bot_m15/config.py's MONGO_COLLECTION)" },
           ].map(c => (
             <div key={c.key} className="flex items-start gap-3 py-2 border-b border-white/[0.04] last:border-0">
               <span className="text-amber-400 min-w-0 flex-shrink-0">{c.key}</span>

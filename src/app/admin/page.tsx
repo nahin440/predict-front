@@ -159,7 +159,7 @@ export default function AdminDashboard() {
           </div>
           <p className="text-xs text-[#62626f]">
             Your MT5 bot writes directly to MongoDB (<code className="text-amber-400">xau_dashboard</code> DB,
-            collection <code className="text-amber-400">predictions_m15</code>). The HTTP endpoint above is only
+            collection <code className="text-amber-400">predgold15</code>). The HTTP endpoint above is only
             for an optional push-based integration — your API key is set in{" "}
             <code className="text-amber-400">.env.local</code> as <code className="text-amber-400">BOT_API_KEY</code>.
           </p>

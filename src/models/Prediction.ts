@@ -92,6 +92,6 @@ PredictionSchema.index({ confidence: -1 });
 PredictionSchema.index({ saved_at: -1 });
 
 const Prediction: Model<mongoose.Document> =
-  mongoose.models.Prediction || mongoose.model("Prediction", PredictionSchema, "predictions_m15");
+  mongoose.models.Prediction || mongoose.model("Prediction", PredictionSchema, "predgold15");
 
 export default Prediction;
