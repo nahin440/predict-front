@@ -246,7 +246,14 @@ export default function PredictionsPage() {
 
                   {/* Main signal card */}
               <div className="card" style={{ padding: "22px clamp(16px,4vw,28px)", borderColor: `${signalColor}30`, boxShadow: `0 0 40px ${signalColor}10, var(--glow-card)`, minWidth: 0 }}>
-                <div style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 10, color: "var(--slate)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 16 }}>Current Signal</div>
+                <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+                  <span style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 10, color: "var(--slate)", textTransform: "uppercase", letterSpacing: "0.1em" }}>Current Signal</span>
+                  {predTimestamp && (
+                    <span style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 10, color: "var(--fog)" }}>
+                      {formatDhakaDateTime(predTimestamp)} BD
+                    </span>
+                  )}
+                </div>
                 <div style={{ fontFamily: "var(--font-syne)", fontSize: "clamp(32px,7vw,48px)", fontWeight: 800, color: signalColor, lineHeight: 1, marginBottom: 8, wordBreak: "break-word" }}>{signalText}</div>
                 {Boolean(pred.signal_strength) && <div style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: 11, color: signalColor, opacity: 0.75, marginBottom: 18 }}>{String(pred.signal_strength)}</div>}
                 <div style={{ fontFamily: "var(--font-jetbrains-mono)", fontSize: "clamp(22px,4.5vw,30px)", fontWeight: 300, color: "var(--paper)", marginBottom: 18 }}>${(pred.current_price as number)?.toFixed(2)}</div>
