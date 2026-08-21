@@ -32,7 +32,7 @@ export default function RegisterPage() {
   const [form, setForm] = useState({ name: "", email: "", password: "", confirm: "" });
 
   function doRedirect(role: string) {
-    setTimeout(() => { window.location.href = role === "ADMIN" ? "/admin" : "/dashboard"; }, 80);
+    setTimeout(() => { window.location.href = role === "ADMIN" ? "/admin" : "/predictions"; }, 80);
   }
 
   async function handleSubmit(e: React.FormEvent) {

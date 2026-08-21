@@ -6,6 +6,7 @@ import { useAuth } from "@/lib/auth/AuthContext";
 
 const ADMIN_NAV = [
   { href:"/admin", label:"Dashboard", icon:"⬡" },
+  { href:"/predictions", label:"Live Signal", icon:"⚡" },
   { href:"/admin/users", label:"Users", icon:"👥" },
   { href:"/admin/predictions", label:"Predictions", icon:"📊" },
   { href:"/admin/blog", label:"Blog", icon:"✍️" },

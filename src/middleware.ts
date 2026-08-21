@@ -24,9 +24,13 @@ export function middleware(req: NextRequest) {
 
   const hasCookie = !!req.cookies.get(COOKIE_ACCESS)?.value;
 
-  // If logged in and trying to access auth pages → send to dashboard
+  // If logged in and trying to access auth pages → send straight to the
+  // live signal page (not the dashboard). Middleware only sees whether the
+  // cookie exists, not the user's role, so it can't safely branch admins to
+  // /admin here — but /predictions is public and correct for both, and
+  // admins can reach /admin via the sidebar link from there.
   if (hasCookie && AUTH_PATHS.some(p => pathname.startsWith(p))) {
-    return NextResponse.redirect(new URL("/dashboard", req.url));
+    return NextResponse.redirect(new URL("/predictions", req.url));
   }
 
   // Protected routes: only block if NO cookie at all

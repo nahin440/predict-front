@@ -16,26 +16,6 @@ const SLIDE_HEADLINES = [
 
 interface Props { prediction: Record<string,unknown>|null }
 
-function LivePrice({ price }: { price: number }) {
-  const [display, setDisplay] = useState(price);
-  const [dir, setDir] = useState<"up"|"down"|null>(null);
-  const prev = useRef(price);
-  useEffect(() => {
-    if (price !== prev.current) {
-      setDir(price > prev.current ? "up" : "down");
-      setDisplay(price);
-      prev.current = price;
-      const t = setTimeout(() => setDir(null), 1200);
-      return () => clearTimeout(t);
-    }
-  }, [price]);
-  return (
-    <span style={{ color: dir==="up"?"var(--up)":dir==="down"?"var(--down)":"var(--paper)", transition:"color 0.4s ease" }}>
-      {display.toFixed(2)}
-    </span>
-  );
-}
-
 export default function HeroSection({ prediction }: Props) {
   const [slide, setSlide] = useState(0);
   const [emailVal, setEmailVal] = useState("");
@@ -46,14 +26,9 @@ export default function HeroSection({ prediction }: Props) {
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, []);
 
-  const skip = prediction?.should_skip as boolean;
-  const dir = prediction?.direction as string;
-  const isUp = dir === "UP" && !skip;
-  const sigColor = skip ? "var(--skip)" : isUp ? "var(--up)" : "var(--down)";
-  const sigText = skip ? "⏸ SKIP" : isUp ? "▲ LONG" : "▼ SHORT";
-  const price = prediction?.current_price as number;
-  const conf = prediction?.confidence as number;
-  const regime = (prediction?.regime as Record<string,unknown>)?.regime as string;
+  // Note: the hero's right-hand card is an intentional design demo (no real
+  // numbers — see hero-demo-* below), so it no longer reads prediction
+  // fields directly. `patterns` still feeds the ticker beneath the copy.
   const patterns = prediction?.active_patterns as string[] | undefined;
 
   return (
@@ -132,95 +107,83 @@ export default function HeroSection({ prediction }: Props) {
             </div>
           </div>
 
-          {/* ── RIGHT: Live signal card ── */}
+          {/* ── RIGHT: Demo signal card (deliberately no real numbers — see .hero-demo-* below) ── */}
           <div className="animate-rise hero-card-col hide-mobile" style={{ animationDelay:"0.15s" }}>
             <div className="hero-float-badge hero-float-1">
               <div className="card hero-mini-badge">
-                <div className="hero-mini-label">Regime</div>
-                <div className="hero-mini-value" style={{ color:"var(--gold)" }}>{regime || "TRENDING_BEAR"}</div>
+                <div className="hero-mini-label">Engine</div>
+                <div className="hero-mini-value" style={{ color:"var(--gold)" }}>XGB·LGB·CAT</div>
               </div>
             </div>
             <div className="hero-float-badge hero-float-2">
-              <div className="card hero-mini-badge">
-                <div className="hero-mini-label">Grade</div>
-                <div className="hero-mini-value" style={{ color:"var(--up)", fontSize:"clamp(16px,2vw,18px)" }}>
-                  {(prediction?.confluence as Record<string,unknown>)?.grade as string || "B"}
-                </div>
+              <div className="card hero-mini-badge hero-demo-pulse-badge">
+                <div className="hero-mini-label">Status</div>
+                <div className="hero-mini-value" style={{ color:"var(--gold-bright)", fontSize:"clamp(13px,1.7vw,15px)" }}>Scanning</div>
               </div>
             </div>
 
-            <div className="card hero-signal-card" style={{ borderColor:`${sigColor}28`, boxShadow:`0 0 clamp(30px,6vw,60px) ${sigColor}12, var(--glow-card)` }}>
-              <div className="hero-signal-header">
+            <div className="card hero-signal-card hero-demo-card">
+              {/* Radar sweep + noise texture background */}
+              <div className="hero-demo-radar" aria-hidden="true">
+                <div className="hero-demo-radar-ring" style={{ width:"70%", height:"70%" }} />
+                <div className="hero-demo-radar-ring" style={{ width:"46%", height:"46%" }} />
+                <div className="hero-demo-radar-ring" style={{ width:"22%", height:"22%" }} />
+                <div className="hero-demo-radar-sweep" />
+              </div>
+
+              <div className="hero-signal-header" style={{ position:"relative", zIndex:2 }}>
                 <div className="fluid-safe">
-                  <div className="hero-mini-label" style={{ marginBottom:5 }}>XAUUSD · AI Signal</div>
+                  <div className="hero-mini-label" style={{ marginBottom:5 }}>XAUUSD · SAMPLE PREVIEW</div>
                   <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-                    <div className="live-dot" />
-                    <span style={{ fontFamily:"var(--font-jetbrains-mono)", fontSize:"clamp(9px,1.8vw,10px)", color:"var(--up)" }}>Processing Active</span>
+                    <span className="hero-demo-dot" />
+                    <span style={{ fontFamily:"var(--font-jetbrains-mono)", fontSize:"clamp(9px,1.8vw,10px)", color:"var(--gold-bright)" }}>Demo · Not a live signal</span>
                   </div>
                 </div>
                 <div style={{ textAlign:"right", flexShrink:0 }}>
                   <div className="hero-mini-label">SPOT PRICE</div>
-                  <div style={{ fontFamily:"var(--font-jetbrains-mono)", fontSize:"clamp(20px,4vw,28px)", fontWeight:500, lineHeight:1 }}>
-                    ${price ? <LivePrice price={price} /> : "—"}
+                  <div className="hero-demo-cipher" style={{ fontSize:"clamp(20px,4vw,28px)" }}>$▮,▮▮▮.▮▮</div>
+                </div>
+              </div>
+
+              <div className="hero-direction-box hero-demo-direction" style={{ position:"relative", zIndex:2 }}>
+                <div className="hero-direction-row">
+                  <div className="fluid-safe">
+                    <div className="hero-mini-label" style={{ marginBottom:6 }}>Signal</div>
+                    <div className="hero-signal-text hero-demo-cipher-text">? ? ? ?</div>
+                    <div style={{ fontFamily:"var(--font-jetbrains-mono)", fontSize:"clamp(9px,1.8vw,10px)", color:"var(--gold)", opacity:0.75, marginTop:4 }}>
+                      Unlocks on your first live cycle
+                    </div>
+                  </div>
+                  <div style={{ textAlign:"right", flexShrink:0 }}>
+                    <div className="hero-mini-label">Confidence</div>
+                    <div className="hero-demo-cipher" style={{ fontSize:"clamp(28px,5.5vw,38px)" }}>▮▮<span style={{ fontSize:"0.4em" }}>%</span></div>
                   </div>
                 </div>
               </div>
 
-              {prediction ? (
-                <>
-                  <div className="hero-direction-box" style={{ borderColor:`${sigColor}28`, background:`${sigColor}07` }}>
-                    <div className="hero-direction-row">
-                      <div className="fluid-safe">
-                        <div className="hero-mini-label" style={{ marginBottom:6 }}>Signal</div>
-                        <div className="hero-signal-text" style={{ color:sigColor }}>{sigText}</div>
-                        {Boolean(prediction.signal_strength) && (
-                          <div style={{ fontFamily:"var(--font-jetbrains-mono)", fontSize:"clamp(9px,1.8vw,10px)", color:sigColor, opacity:0.7, marginTop:4 }}>
-                            {String(prediction.signal_strength)}
-                          </div>
-                        )}
-                      </div>
-                      <div style={{ textAlign:"right", flexShrink:0 }}>
-                        <div className="hero-mini-label">Confidence</div>
-                        <div className="fluid-num" style={{ color: conf>=60 ? "var(--gold-bright)" : "var(--ash)", fontWeight:300 }}>
-                          {conf || "—"}<span style={{ fontSize:"0.4em" }}>%</span>
-                        </div>
-                      </div>
-                    </div>
+              <div className="hero-model-votes" style={{ position:"relative", zIndex:2 }}>
+                {["XGB","LGB","CAT"].map((m,i) => (
+                  <div key={m} className="hero-vote-tile hero-demo-vote-tile" style={{ animationDelay:`${i*0.35}s` }}>
+                    <div className="hero-mini-label" style={{ marginBottom:3 }}>{m}</div>
+                    <div className="hero-demo-vote-bar"><span style={{ animationDelay:`${i*0.35}s` }} /></div>
                   </div>
+                ))}
+              </div>
 
-                  {Boolean(prediction.model_votes) && (
-                    <div className="hero-model-votes">
-                      {Object.entries(prediction.model_votes as Record<string,number>).map(([m,v]) => (
-                        <div key={m} className="hero-vote-tile">
-                          <div className="hero-mini-label" style={{ marginBottom:3 }}>{m}</div>
-                          <div style={{ fontFamily:"var(--font-jetbrains-mono)", fontSize:"clamp(13px,2.8vw,18px)", fontWeight:500, color: v>0.5 ? "var(--down)" : "var(--up)" }}>
-                            {(v*100).toFixed(0)}%
-                          </div>
-                        </div>
-                      ))}
+              <div className="hero-locked-wrap">
+                <div className="hero-locked-grid" style={{ filter:"none" }}>
+                  {["SL","TP1","RR"].map((l) => (
+                    <div key={l} className="hero-locked-tile hero-demo-locked-tile">
+                      <div className="hero-mini-label">{l}</div>
+                      <div className="hero-demo-cipher" style={{ fontSize:"clamp(11px,2.2vw,13px)" }}>▮▮▮▮</div>
                     </div>
-                  )}
-
-                  <div className="hero-locked-wrap">
-                    <div className="hero-locked-grid">
-                      {[["SL","$4335.75"],["TP1","$4329.11"],["RR","1.5:1"]].map(([l,v]) => (
-                        <div key={l} className="hero-locked-tile">
-                          <div className="hero-mini-label">{l}</div>
-                          <div style={{ fontFamily:"var(--font-jetbrains-mono)", fontSize:"clamp(11px,2.2vw,13px)", color:"var(--paper)" }}>{v}</div>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="hero-locked-overlay">
-                      <span className="hero-mini-label">Trader Plan Required</span>
-                      <Link href="/pricing" className="btn btn-primary btn-sm" style={{ textDecoration:"none" }}>🔒 Unlock SL/TP</Link>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-                  {[80,60,100,50].map((w,i) => <div key={i} className="skeleton" style={{ height:40, width:`${w}%` }} />)}
+                  ))}
                 </div>
-              )}
+                <div className="hero-locked-overlay hero-demo-overlay">
+                  <span className="hero-mini-label" style={{ color:"var(--gold-bright)" }}>This is a preview, not live data</span>
+                  <Link href="/auth/register" className="btn btn-primary btn-sm" style={{ textDecoration:"none" }}>⚡ See the Real Signal — Free</Link>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -299,6 +262,77 @@ export default function HeroSection({ prediction }: Props) {
         .hero-stats-row { display: grid; grid-template-columns: repeat(4,1fr); gap: clamp(8px,2vw,12px); margin-top: clamp(40px,7vw,56px); padding-top: clamp(28px,5vw,40px); border-top: 1px solid rgba(255,255,255,0.05); width: 100%; }
         .hero-stat-item { text-align: center; min-width: 0; }
         .hero-bottom-fade { position: absolute; bottom: 0; left: 0; right: 0; height: clamp(60px,10vw,120px); background: linear-gradient(to top, var(--ink), transparent); pointer-events: none; z-index: 3; }
+
+        /* ── Hero demo card — deliberately number-free, radar-scan motif ── */
+        .hero-demo-card {
+          position: relative;
+          overflow: hidden;
+          border-color: rgba(245,166,35,0.22);
+          box-shadow: 0 0 clamp(30px,6vw,60px) rgba(245,166,35,0.10), var(--glow-card);
+          background:
+            radial-gradient(120% 90% at 100% 0%, rgba(245,166,35,0.07), transparent 60%),
+            var(--carbon);
+        }
+        .hero-demo-radar { position: absolute; inset: 0; z-index: 1; display: flex; align-items: center; justify-content: center; opacity: 0.5; pointer-events: none; }
+        .hero-demo-radar-ring { position: absolute; border-radius: 50%; border: 1px solid rgba(245,166,35,0.14); }
+        .hero-demo-radar-sweep {
+          position: absolute; top: 50%; left: 50%; width: 70%; height: 70%;
+          transform-origin: 0% 0%;
+          background: conic-gradient(from 0deg, rgba(245,166,35,0.35), transparent 28%);
+          border-radius: 50%;
+          animation: demoSweep 4.2s linear infinite;
+          mix-blend-mode: screen;
+        }
+        @keyframes demoSweep { to { transform: rotate(360deg); } }
+        .hero-demo-dot {
+          width: 6px; height: 6px; border-radius: 50%;
+          background: var(--gold-bright);
+          box-shadow: 0 0 0 rgba(245,166,35,0.5);
+          animation: demoPulse 1.6s ease-out infinite;
+          flex-shrink: 0;
+        }
+        @keyframes demoPulse {
+          0%   { box-shadow: 0 0 0 0 rgba(245,166,35,0.55); }
+          70%  { box-shadow: 0 0 0 8px rgba(245,166,35,0); }
+          100% { box-shadow: 0 0 0 0 rgba(245,166,35,0); }
+        }
+        .hero-demo-pulse-badge { animation: demoFloatGlow 2.6s ease-in-out infinite; }
+        @keyframes demoFloatGlow {
+          0%,100% { box-shadow: none; }
+          50%     { box-shadow: 0 0 24px rgba(245,166,35,0.18); }
+        }
+        .hero-demo-cipher {
+          font-family: var(--font-jetbrains-mono);
+          font-weight: 500; line-height: 1;
+          color: var(--steel);
+          letter-spacing: 0.02em;
+          user-select: none;
+        }
+        .hero-demo-cipher-text {
+          font-family: var(--font-syne); font-weight: 800; line-height: 1;
+          font-size: clamp(24px,5vw,36px);
+          color: var(--steel);
+          letter-spacing: 0.3em;
+          user-select: none;
+        }
+        .hero-demo-direction { border-color: rgba(245,166,35,0.16); background: rgba(245,166,35,0.04); position: relative; z-index: 2; }
+        .hero-demo-vote-tile { position: relative; }
+        .hero-demo-vote-bar {
+          height: 5px; border-radius: 99px; background: rgba(255,255,255,0.06);
+          overflow: hidden; margin-top: 6px;
+        }
+        .hero-demo-vote-bar span {
+          display: block; height: 100%; width: 30%; border-radius: 99px;
+          background: linear-gradient(90deg, var(--gold-dim), var(--gold-bright));
+          animation: demoBarScan 2.4s ease-in-out infinite;
+        }
+        @keyframes demoBarScan {
+          0%   { transform: translateX(-100%); width: 40%; }
+          50%  { transform: translateX(140%);  width: 55%; }
+          100% { transform: translateX(-100%); width: 40%; }
+        }
+        .hero-demo-locked-tile { position: relative; }
+        .hero-demo-overlay { background: rgba(8,8,9,0.72); }
 
         @media (max-width: 900px) {
           .hero-cols { grid-template-columns: 1fr; }
